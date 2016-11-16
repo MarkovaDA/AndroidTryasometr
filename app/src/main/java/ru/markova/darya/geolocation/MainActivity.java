@@ -1,7 +1,6 @@
 package ru.markova.darya.geolocation;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -15,7 +14,17 @@ import android.telephony.TelephonyManager;
 import android.view.View;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import java.io.IOException;
 import java.util.Date;
+
+import retrofit2.Call;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import ru.markova.darya.geolocation.dto.LocationDTO;
 
 public class MainActivity extends AppCompatActivity {
     TextView tvEnabledGPS;
@@ -28,6 +37,19 @@ public class MainActivity extends AppCompatActivity {
 
     private LocationManager locationManager;
 
+    private Gson gson = new GsonBuilder().create();
+
+    private final String URL = "https://vps3.vistar.su";
+
+
+    private Retrofit retrofit = new Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .baseUrl("URL")
+            .build();
+
+    private IDataSending dataSending = retrofit.create(IDataSending.class);
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,8 +60,10 @@ public class MainActivity extends AppCompatActivity {
         tvEnabledNet = (TextView) findViewById(R.id.tvEnabledNet);
         tvStatusNet = (TextView) findViewById(R.id.tvStatusNet);
         tvLocationNet = (TextView) findViewById(R.id.tvLocationNet);
+
         //получаем LocationManager, через который будем работать
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        //идентификатор устройства
         TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         deviceIMEI = telephonyManager.getDeviceId();
     }
@@ -74,10 +98,15 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onLocationChanged(Location location) {
-            //отправка координат на сервер
-            SendGeoLocation.sendLocation(location, deviceIMEI);
-            //вывести результат в поле статус отправки
             showLocation(location);
+            //отправка координат на сервер
+            Call<Object> call = dataSending.sendCoordinate(
+                new LocationDTO(location.getLongitude(), location.getLatitude(), deviceIMEI));
+            try {
+                Response<Object> serverResponse = call.execute();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
