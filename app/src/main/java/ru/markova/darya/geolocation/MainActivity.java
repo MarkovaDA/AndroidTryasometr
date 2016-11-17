@@ -17,10 +17,10 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.io.IOException;
 import java.util.Date;
 
 import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -44,10 +44,14 @@ public class MainActivity extends AppCompatActivity {
 
     private Retrofit retrofit = new Retrofit.Builder()
             .addConverterFactory(GsonConverterFactory.create(gson))
-            .baseUrl("URL")
+            .baseUrl(URL)
             .build();
+    //кешировать данные в базу SQLLite и отправлять через каждый определенный интервал
+    //файл отдельной конфигурации - синглтон
+    //ORM Lite - фреймворк для работы с базой
+    //ctrl  Alt  L
 
-    private IDataSending dataSending = retrofit.create(IDataSending.class);
+    private DataSendService dataSendService = retrofit.create(DataSendService.class);
 
 
     @Override
@@ -99,14 +103,21 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onLocationChanged(Location location) {
             showLocation(location);
-            //отправка координат на сервер
-            Call<Object> call = dataSending.sendCoordinate(
+            //отправка координат на сервер - вытащить скоп объектов и потом отправлять
+            //базу подчищать
+            Call<Object> call = dataSendService.sendCoordinate(
                 new LocationDTO(location.getLongitude(), location.getLatitude(), deviceIMEI));
-            try {
-                Response<Object> serverResponse = call.execute();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            call.enqueue(new Callback<Object>() {
+                @Override
+                public void onResponse(Call<Object> call, Response<Object> response) {
+                    //успешная отправка
+                }
+
+                @Override
+                public void onFailure(Call<Object> call, Throwable t) {
+                    //неуспешная отправка
+                }
+            });
         }
 
         @Override
