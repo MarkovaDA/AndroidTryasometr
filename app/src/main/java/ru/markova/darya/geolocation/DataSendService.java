@@ -11,6 +11,5 @@ public interface DataSendService {
     @FormUrlEncoded
     @POST("/state/geo")
     Call<Object> sendCoordinate(@Body LocationDTO location);
-
     //Call<Object> sendCoordinate2(@Field("location") LocationDTO location); Shift + F6
 }

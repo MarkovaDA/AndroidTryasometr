@@ -1,59 +1,133 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="5dp">
-    <TextView
-        android:id="@+id/tvTitleGPS"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/provider_gps"
-        android:textSize="30sp"/>
-    <TextView
-        android:id="@+id/tvEnabledGPS"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="24sp"/>
-    <TextView
-        android:id="@+id/tvStatusGPS"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="24sp"/>
-    <TextView
-        android:id="@+id/tvLocationGPS"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="24sp"/>
-    <TextView
-        android:id="@+id/tvTitleNet"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="@string/provider_network"
-        android:textSize="30sp"/>
-    <TextView
-        android:id="@+id/tvEnabledNet"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="24sp"/>
-    <TextView
-        android:id="@+id/tvStatusNet"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="24sp"/>
-    <TextView
-        android:id="@+id/tvLocationNet"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="24sp"/>
-    <Button
-        android:id="@+id/btnLocationSettings"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:onClick="onClickLocationSettings"
-        android:text="@string/location_settings"/>
-</LinearLayout>
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="ru.markova.darya.geolocation.MainActivity">
+
+    <GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="16dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="16dp"
+        android:columnCount="2"
+        tools:context=".MainActivity">
+
+        <TextView
+            android:id="@+id/tvTitleGPS"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="0"
+            android:layout_column="0"
+            android:layout_gravity="left"
+            android:text="@string/provider_gps"
+            android:textSize="24sp" />
+
+        <TextView
+            android:id="@+id/tvTitleNet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_row="0"
+            android:layout_column="1"
+            android:textSize="24sp"
+            android:text="@string/provider_network"
+            />
+
+        <TextView
+            android:id="@+id/tvEnabledGPS"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="1"
+            android:layout_column="0"
+            android:layout_gravity="left"
+            android:text="is enabled GPS" />
+
+        <TextView
+            android:id="@+id/tvEnabledNet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="1"
+            android:layout_column="1"
+            android:layout_gravity="right"
+            android:text="is enabled net"
+        />
+
+        <TextView
+            android:id="@+id/tvStatusGPS"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_row="2"
+            android:layout_column="0"
+            android:text="is status GPS" />
+
+        <TextView
+            android:id="@+id/tvStatusNet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_row="2"
+            android:layout_column="1"
+            android:text="is net status"
+            />
+
+        <TextView
+            android:id="@+id/tvLocationGPS"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_row="3"
+            android:layout_column="0"
+            android:text="location GPS"
+            />
+
+        <TextView
+            android:id="@+id/tvLocationNet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_row="3"
+            android:layout_column="1"
+            android:text="location net"
+            />
+
+        <!--текст для вывода результатов и кнопка-->
+        <Button
+            android:id="@+id/btnLocationSettings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:onClick="onClickLocationSettings"
+            android:text="@string/location_settings"
+            android:layout_gravity="center_horizontal"
+            android:layout_row="2"
+            android:layout_columnSpan="2"/>
+        <!--виджеты для тестирования данных-->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="сохраненный объект"
+            android:id="@+id/textTestDB"
+            android:layout_gravity="fill_horizontal"
+            android:layout_row="5"
+            android:layout_column="0"/>
+
+        <Button
+            android:onClick="onTestAddToDB"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="5"
+            android:layout_column="1"
+            android:layout_gravity="right"
+            android:text="добавить" />
+    </GridLayout>
+</RelativeLayout>
