@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import ru.markova.darya.geolocation.DataSendService;
+import ru.markova.darya.geolocation.service.DataSendService;
 
 /**
  * Created by darya on 19.11.16.
@@ -26,7 +26,7 @@ public class RetrofitBuilder {
         if (dataSendService == null){
             gson = new GsonBuilder().create();
             retrofit = new Retrofit.Builder()
-                    .addConverterFactory(GsonConverterFactory.create(gson))
+                    .addConverterFactory(GsonConverterFactory.create())
                     .baseUrl(URL)
                     .build();
             dataSendService = retrofit.create(DataSendService.class);

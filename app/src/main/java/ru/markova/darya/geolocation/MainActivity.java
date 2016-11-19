@@ -14,12 +14,7 @@ import android.telephony.TelephonyManager;
 import android.view.View;
 import android.widget.TextView;
 
-import org.greenrobot.greendao.query.Query;
-import org.greenrobot.greendao.query.QueryBuilder;
-
 import java.util.Date;
-import java.util.List;
-import java.util.Random;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -29,7 +24,7 @@ import ru.markova.darya.geolocation.config.RetrofitBuilder;
 import ru.markova.darya.geolocation.dto.LocationDTO;
 import ru.markova.darya.geolocation.entity.DaoSession;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
-import ru.markova.darya.geolocation.entity.GeoTableEntityDao;
+import ru.markova.darya.geolocation.service.DataSendService;
 
 public class MainActivity extends AppCompatActivity {
     TextView tvEnabledGPS;
@@ -38,19 +33,10 @@ public class MainActivity extends AppCompatActivity {
     TextView tvEnabledNet;
     TextView tvStatusNet;
     TextView tvLocationNet;
-    TextView txtDbTest;
     String   deviceIMEI;
 
     private LocationManager locationManager;
 
-    //https://habrahabr.ru/post/143431/
-    //кешировать данные в базу SQLLite и отправлять через каждый определенный интервал
-    //файл отдельной конфигурации - синглтон
-    //ORM Lite - фреймворк для работы с базой
-    //ctrl  Alt  L - форматирование всего текста
-    //!сделать кнопку,по её нажатию генерировать рандомные координаты и поверять,кладутся ли они в базу
-    //настроить часовой поис gps, координаты помещать в базу сразу после фиксации их изменения!
-    //создать сервис, похожий на джобраннер который будет координаты забирать из базы и послыать на сервер
     private static DataSendService dataSendService = RetrofitBuilder.getDataSendService();
 
     private static DaoSession daoSession;
@@ -66,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
         tvEnabledNet =  (TextView) findViewById(R.id.tvEnabledNet);
         tvStatusNet =   (TextView)  findViewById(R.id.tvStatusNet);
         tvLocationNet = (TextView)findViewById(R.id.tvLocationNet);
-        txtDbTest =     (TextView)findViewById(R.id.textTestDB);
         //получаем LocationManager, через который будем работать
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         //идентификатор устройства
@@ -102,26 +87,14 @@ public class MainActivity extends AppCompatActivity {
         locationManager.removeUpdates(locationListener);
     }
 
-    //тестируемый метод при клике на кнопку
-    public void onTestAddToDB(View view){
-        //добавляем в базу,
+    //добавление координат в базу данных - сделать отдельным сервисом все CRUD-операции с базом
+    private void saveLocation(Location location){
         GeoTableEntity entity = new GeoTableEntity();
+        entity.setLon(location.getLongitude());
+        entity.setLat(location.getLatitude());
+        entity.setDataTime(new Date(location.getTime()));
         entity.setDeviceImei(deviceIMEI);
-        Random rnd = new Random();
-        entity.setLat(rnd.nextDouble());
-        entity.setLon(rnd.nextDouble());
-        long curTime = System.currentTimeMillis();
-        Date curDate = new Date(curTime);
-        entity.setDataTime(curDate);
         daoSession.insert(entity);
-        //тут же извлекаем  последнее значение и помещаем на форму
-        //Query<GeoTableEntity> qb = daoSession.queryBuilder(GeoTableEntity.class).build();
-        //qb.unique();
-        GeoTableEntity last = daoSession.queryBuilder(GeoTableEntity.class)
-            .where(GeoTableEntityDao.Properties.DeviceImei.eq(deviceIMEI))
-            .orderDesc(GeoTableEntityDao.Properties.DataTime)
-            .limit(1).unique();
-        txtDbTest.setText(last.getId().toString());
     }
 
     private LocationListener locationListener = new LocationListener() {
@@ -129,8 +102,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onLocationChanged(Location location) {
             showLocation(location);
-            //отправка координат на сервер - вытащить скоп объектов и потом отправлять
-            //базу подчищать
+            saveLocation(location);
+            //отправку так не делать - делать в отдельном сервисе
             Call<Object> call = dataSendService.sendCoordinate(
                 new LocationDTO(location.getLongitude(), location.getLatitude(), deviceIMEI));
             call.enqueue(new Callback<Object>() {
@@ -142,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(Call<Object> call, Throwable t) {
                     //неуспешная отправка
+                    System.out.println("SENDING DATA FAILURE....");
                 }
             });
         }
