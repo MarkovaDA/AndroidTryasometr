@@ -7,14 +7,19 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -24,9 +29,13 @@ import ru.markova.darya.geolocation.config.RetrofitBuilder;
 import ru.markova.darya.geolocation.dto.LocationDTO;
 import ru.markova.darya.geolocation.entity.DaoSession;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
-import ru.markova.darya.geolocation.service.DataSendService;
+import ru.markova.darya.geolocation.service.RetrofitDataSendService;
+import ru.markova.darya.geolocation.service.SendDataFromDBService;
 
 public class MainActivity extends AppCompatActivity {
+
+    private  final static  Long CHECK_INTERVAL = 5 * 1000L;
+
     TextView tvEnabledGPS;
     TextView tvStatusGPS;
     TextView tvLocationGPS;
@@ -37,9 +46,12 @@ public class MainActivity extends AppCompatActivity {
 
     private LocationManager locationManager;
 
-    private static DataSendService dataSendService = RetrofitBuilder.getDataSendService();
-
     private static DaoSession daoSession;
+
+    private static RetrofitDataSendService dataSendService = RetrofitBuilder.getDataSendService();
+
+    final String LOG_TAG = "MainActivity";
+    //private Handler checkAndSendHandler;
 
 
     @Override
@@ -52,14 +64,17 @@ public class MainActivity extends AppCompatActivity {
         tvEnabledNet =  (TextView) findViewById(R.id.tvEnabledNet);
         tvStatusNet =   (TextView)  findViewById(R.id.tvStatusNet);
         tvLocationNet = (TextView)findViewById(R.id.tvLocationNet);
-        //получаем LocationManager, через который будем работать
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        //идентификатор устройства
         TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         deviceIMEI = telephonyManager.getDeviceId();
-
         daoSession = GreenDaoBuilder.getDaoSession(MainActivity.this);
+
+        startService(new Intent(this, SendDataFromDBService.class));//запускаем службу отправки координат
+        //checkAndSendHandler = new Handler();
+        //checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
     }
+
+
 
     @Override
     protected void onResume() {
@@ -79,15 +94,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            System.out.println("onPause: приложение не имеет доступа к службе геолокации");
-            return;
-        }
-        //отключаем слушателя
-        locationManager.removeUpdates(locationListener);
     }
 
-    //добавление координат в базу данных - сделать отдельным сервисом все CRUD-операции с базом
+
     private void saveLocation(Location location){
         GeoTableEntity entity = new GeoTableEntity();
         entity.setLon(location.getLongitude());
@@ -103,21 +112,6 @@ public class MainActivity extends AppCompatActivity {
         public void onLocationChanged(Location location) {
             showLocation(location);
             saveLocation(location);
-            //отправку так не делать - делать в отдельном сервисе
-            Call<Object> call = dataSendService.sendCoordinate(
-                new LocationDTO(location.getLongitude(), location.getLatitude(), deviceIMEI));
-            call.enqueue(new Callback<Object>() {
-                @Override
-                public void onResponse(Call<Object> call, Response<Object> response) {
-                    //успешная отправка
-                }
-
-                @Override
-                public void onFailure(Call<Object> call, Throwable t) {
-                    //неуспешная отправка
-                    System.out.println("SENDING DATA FAILURE....");
-                }
-            });
         }
 
         @Override
@@ -172,4 +166,44 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
     };
 
+    /*Runnable dataSendRunnable = new Runnable() {
+        @Override
+        public void run() {
+            checkAndSendHandler.removeCallbacksAndMessages(null);
+            List<LocationDTO> data = new ArrayList<>();
+            System.out.println("TASK IS RUNNING");
+
+            Call<Object> call = dataSendService.sendLocations(data);
+            call.enqueue(new Callback<Object>() {
+                @Override
+                public void onResponse(Call<Object> call, Response<Object> response) {
+                    //успешная отправка
+                    System.out.println("SENDING DATA SUCCESS....");
+                    checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
+                }
+
+                @Override
+                public void onFailure(Call<Object> call, Throwable t) {
+                    //неуспешная отправка
+                    System.out.println("SENDING DATA FAILURE....");
+                    checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
+
+                }
+            });
+        }
+    };*/
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        /*if (checkAndSendHandler != null) {
+            checkAndSendHandler.removeCallbacksAndMessages(null);
+        }*/
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d(LOG_TAG, "SENDING DATA UNTOUCHED....");
+            return;
+        }
+        //отключаем слушателя
+        locationManager.removeUpdates(locationListener);
+    }
 }
