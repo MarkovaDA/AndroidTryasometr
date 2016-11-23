@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
+import org.greenrobot.greendao.database.Database;
 import org.greenrobot.greendao.query.Query;
 
 import java.util.List;
@@ -20,6 +21,7 @@ import ru.markova.darya.geolocation.MainActivity;
 import ru.markova.darya.geolocation.config.GreenDaoBuilder;
 import ru.markova.darya.geolocation.config.RetrofitBuilder;
 import ru.markova.darya.geolocation.dto.LocationDTO;
+import ru.markova.darya.geolocation.entity.DaoMaster;
 import ru.markova.darya.geolocation.entity.DaoSession;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
 
@@ -31,13 +33,15 @@ public class SendDataFromDBService extends Service{
     private Handler checkAndSendHandler = null;
 
     //сервис для отправки запросов на сервер
-    private  RetrofitDataSendService dataSendService = RetrofitBuilder.getDataSendService();
+    private  RetrofitDataSendService dataSendService;
 
     //сервис для работы с базой данных - сейчас требует контекст, потому не работает
-    private   DaoSession daoSession =  GreenDaoBuilder.getDaoSession(getApplicationContext());
+    //создать свою сессию, новую, для работы с базой данных - подумать как
+    private   DaoSession daoSession;
 
     //получаем старые координаты
     private List<LocationDTO> getSavedLocations(){
+
         Query query = daoSession.queryBuilder(GeoTableEntity.class).build();
         List<LocationDTO> locations = query.list();
         return locations;
@@ -56,7 +60,12 @@ public class SendDataFromDBService extends Service{
 
     public void onCreate(){
         super.onCreate();
+        //создаем новую сессию для работы с бд
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, "tryasometr_local_storage");
+        Database db = helper.getWritableDb();
+        daoSession = new DaoMaster(db).newSession();
         checkAndSendHandler = new Handler();
+        dataSendService = RetrofitBuilder.getDataSendService();
         System.out.println("SERVICE CREATED");
     }
 
