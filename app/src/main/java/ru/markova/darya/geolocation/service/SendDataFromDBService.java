@@ -8,22 +8,23 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
-
 import org.greenrobot.greendao.database.Database;
 import org.greenrobot.greendao.query.Query;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import ru.markova.darya.geolocation.MainActivity;
-import ru.markova.darya.geolocation.config.GreenDaoBuilder;
 import ru.markova.darya.geolocation.config.RetrofitBuilder;
 import ru.markova.darya.geolocation.dto.LocationDTO;
 import ru.markova.darya.geolocation.entity.DaoMaster;
 import ru.markova.darya.geolocation.entity.DaoSession;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
+import java.util.Date;
 
 public class SendDataFromDBService extends Service{
 
@@ -31,13 +32,11 @@ public class SendDataFromDBService extends Service{
     private  final static  Long CHECK_INTERVAL = 5 * 1000L; //интервал запуска
 
     private Handler checkAndSendHandler = null;
-
+    private DaoMaster.DevOpenHelper helper;
     //сервис для отправки запросов на сервер
     private  RetrofitDataSendService dataSendService;
 
-    //сервис для работы с базой данных - сейчас требует контекст, потому не работает
-    //создать свою сессию, новую, для работы с базой данных - подумать как
-    private   DaoSession daoSession;
+    private  DaoSession daoSession;
 
     //получаем старые координаты
     private List<LocationDTO> getSavedLocations(){
@@ -46,6 +45,8 @@ public class SendDataFromDBService extends Service{
         List<LocationDTO> locations = query.list();
         return locations;
     }
+
+    private Intent intent;
 
     //очистка координат
     private void clearLocalStorage(){
@@ -60,28 +61,36 @@ public class SendDataFromDBService extends Service{
 
     public void onCreate(){
         super.onCreate();
-        //создаем новую сессию для работы с бд
-        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, "tryasometr_local_storage");
+        intent = new Intent(MainActivity.BROADCAST_ACTION);
+        //создаем новую сессию для работы с бд -
+        helper = new DaoMaster.DevOpenHelper(this, "tryasometr_local_storage");
         Database db = helper.getWritableDb();
         daoSession = new DaoMaster(db).newSession();
         checkAndSendHandler = new Handler();
         dataSendService = RetrofitBuilder.getDataSendService();
-        System.out.println("SERVICE CREATED");
     }
 
     public void onDestroy(){
         super.onDestroy();
+        /*if (helper != null)
+            helper.close();*/
         if (checkAndSendHandler != null) {
             checkAndSendHandler.removeCallbacksAndMessages(null);
             checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
         }
     }
 
+
     public int onStartCommand(Intent intent, int flags, int startId) {
-        System.out.println("SERVICE START COMMAND");
         Toast.makeText(this, "Служба запущена", Toast.LENGTH_SHORT).show();
         checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    private String getCurrentDate(){
+        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        Date date = new Date();
+        return dateFormat.format(date);
     }
 
     private Runnable dataSendRunnable = new Runnable() {
@@ -99,15 +108,20 @@ public class SendDataFromDBService extends Service{
                 public void onResponse(Call<Object> call, Response<Object> response) {
                     //успешная отправка
                     Log.d(LOG_TAG, "SENDING DATA SUCCESS...");
+                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "sending success:" + getCurrentDate());
+                    sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
 
                 @Override
                 public void onFailure(Call<Object> call, Throwable t) {
                     //неуспешная отправка
-                    //Log.d(LOG_TAG, "SENDING DATA FAILURE....");
-                    System.out.println("SENDING DATA FAILURE....");
+
+                    Log.d(LOG_TAG, "SENDING DATA FAILURE....");
+                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "sending fail:" + getCurrentDate());
+                    sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
+                    //попробовать здесь изменить статус отправки
                 }
             });
         }

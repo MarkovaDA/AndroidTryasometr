@@ -8,11 +8,18 @@ import ru.markova.darya.geolocation.entity.DaoSession;
 public class GreenDaoBuilder {
 
     private static DaoSession daoSession;
+    private static DaoMaster.DevOpenHelper helper;
     public static DaoSession getDaoSession(Context context){
-        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(context, "tryasometr_local_storage");
+
+        helper = new DaoMaster.DevOpenHelper(context, "tryasometr_local_storage");
         Database db = helper.getWritableDb();
         daoSession = new DaoMaster(db).newSession();
         return daoSession;
+    }
+    public static void closeSession(){
+        if (helper != null){
+            helper.close();
+        }
     }
 
 }

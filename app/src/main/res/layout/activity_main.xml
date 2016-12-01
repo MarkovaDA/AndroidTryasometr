@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -13,25 +12,25 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/provider_gps"
-        android:textSize="30sp">
+        android:textSize="20sp">
     </TextView>
     <TextView
         android:id="@+id/tvEnabledGPS"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="24sp">
+        android:textSize="20sp">
     </TextView>
     <TextView
         android:id="@+id/tvStatusGPS"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="24sp">
+        android:textSize="20sp">
     </TextView>
     <TextView
         android:id="@+id/tvLocationGPS"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="24sp">
+        android:textSize="20sp">
     </TextView>
     <TextView
         android:id="@+id/tvTitleNet"
@@ -39,32 +38,40 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:text="@string/provider_network"
-        android:textSize="30sp">
+        android:textSize="20sp">
     </TextView>
     <TextView
         android:id="@+id/tvEnabledNet"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="24sp">
+        android:textSize="20sp">
     </TextView>
     <TextView
         android:id="@+id/tvStatusNet"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="24sp">
+        android:textSize="20sp">
     </TextView>
     <TextView
         android:id="@+id/tvLocationNet"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="24sp">
+        android:textSize="20sp">
     </TextView>
-    <Button
-        android:id="@+id/btnLocationSettings"
+
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:onClick="onClickLocationSettings"
-        android:text="@string/location_settings">
-    </Button>
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="статус отправки данных"
+        android:id="@+id/txtStatusSending"
+        android:layout_gravity="center_horizontal" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Я на карте"
+        android:id="@+id/btnShowMap"
+        android:onClick="onClickShowMap"
+        android:layout_gravity="center_horizontal" />
 </LinearLayout>
