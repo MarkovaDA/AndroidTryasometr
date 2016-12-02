@@ -9,7 +9,7 @@ import org.greenrobot.greendao.DaoException;
 
 @Entity(active=true, nameInDb = "geo_table", createInDb = true)
 public class GeoTableEntity {
-
+    //добавить еще данные по сенсорам (возможно,создать отдельную таблицу)
     @Id
     @Generated
     private Long id;

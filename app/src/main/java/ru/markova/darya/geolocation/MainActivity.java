@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     String   deviceIMEI;
     BroadcastReceiver brSending;
     private LocationManager locationManager;
+    private Location lastLocation; //последнее запомненное местоположение
 
     private static DaoSession daoSession;
 
@@ -110,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onLocationChanged(Location location) {
+            lastLocation = location; //запоминаем данные о местоположении
             showLocation(location);
             saveLocation(location);
         }
@@ -169,6 +171,10 @@ public class MainActivity extends AppCompatActivity {
     //запуск активити
     public void onClickShowMap(View view){
         Intent showMapActivityIntent = new Intent(this, ShowMapActivity.class);
+        if (lastLocation != null) {
+            showMapActivityIntent.putExtra("lastLocationLon", Double.toString(lastLocation.getLongitude()));
+            showMapActivityIntent.putExtra("lastLocationLat", Double.toString(lastLocation.getLatitude()));
+        }
         startActivity(showMapActivityIntent);
     }
 
