@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -16,14 +18,14 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import java.util.Date;
 import ru.markova.darya.geolocation.config.GreenDaoBuilder;
-import ru.markova.darya.geolocation.config.RetrofitBuilder;
 import ru.markova.darya.geolocation.entity.DaoSession;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
-import ru.markova.darya.geolocation.service.RetrofitDataSendService;
 import ru.markova.darya.geolocation.service.SendDataFromDBService;
-import com.google.android.gms.maps.SupportMapFragment;
+import ru.markova.darya.geolocation.service.ShakeEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,6 +38,10 @@ public class MainActivity extends AppCompatActivity {
     TextView tvStatusNet;
     TextView tvLocationNet;
     TextView txtStatusSending;
+
+    private SensorManager mSensorManager;
+    private ShakeEventListener mSensorListener;
+
     String   deviceIMEI;
     BroadcastReceiver brSending;
     private LocationManager locationManager;
@@ -46,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
     final String LOG_TAG = "MainActivity";
 
     private Intent serverIntent;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,14 +64,25 @@ public class MainActivity extends AppCompatActivity {
         tvStatusNet =   (TextView)  findViewById(R.id.tvStatusNet);
         tvLocationNet = (TextView)findViewById(R.id.tvLocationNet);
         txtStatusSending = (TextView)findViewById(R.id.txtStatusSending);
+
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
         brSending =  new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 String status = intent.getExtras().get(MainActivity.STATUS_SENDING_PARAM).toString();
-                System.out.println(status);
                 txtStatusSending.setText(status);
             }
         };
+
+        mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE); //менеджер для прослушивания датчиков
+        mSensorListener = new ShakeEventListener();
+        mSensorListener.setOnShakeListener(new ShakeEventListener.OnShakeListener() {
+
+            public void onShake() {
+                //Toast.makeText(KPBActivityImpl.this, "Shake!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         deviceIMEI = telephonyManager.getDeviceId();
         daoSession = GreenDaoBuilder.getDaoSession(MainActivity.this);
@@ -81,7 +97,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
             && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             System.out.println("onResume(): приложение не имеет доступа к службе геолокации");
@@ -90,6 +105,8 @@ public class MainActivity extends AppCompatActivity {
         //вешаем слушателя на два типа провайдеров
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 1, locationListener);
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 1, locationListener);
+        //зарегистрировали слушателя события тряски
+        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
         checkEnabled();
     }
 
@@ -142,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
     //отображение координат
     private void showLocation(Location location) {
         if (location == null)
@@ -163,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
         tvEnabledNet.setText("Enabled: " + locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER));
     }
 
-    //вызов меню
+    //вызов меню с настройками
     public void onClickLocationSettings(View view) {
         startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
     };
@@ -181,9 +199,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        /*if (checkAndSendHandler != null) {
-            checkAndSendHandler.removeCallbacksAndMessages(null);
-        }*/
         GreenDaoBuilder.closeSession();
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.d(LOG_TAG, "SENDING DATA UNTOUCHED....");
@@ -193,5 +208,13 @@ public class MainActivity extends AppCompatActivity {
         stopService(serverIntent);
         //отключаем слушателя
         locationManager.removeUpdates(locationListener);
+        //отписываем слушателя события тряски
+        mSensorManager.unregisterListener(mSensorListener);
     }
+    //отобразить информацию о перегрузочном ускорении
+    public void showAccelerationInfo(View view){
+        Toast toast = Toast.makeText(getApplicationContext(),mSensorListener.getTextInfo(), Toast.LENGTH_LONG);
+        toast.show();
+    }
+
 }

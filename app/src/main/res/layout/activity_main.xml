@@ -74,4 +74,14 @@
         android:id="@+id/btnShowMap"
         android:onClick="onClickShowMap"
         android:layout_gravity="center_horizontal" />
+
+    <Button
+        android:text="ускорение"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnAcceleration"
+        android:layout_gravity="center_horizontal"
+        android:onClick="showAccelerationInfo"
+        />
+
 </LinearLayout>
