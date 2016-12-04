@@ -1,23 +1,30 @@
 package ru.markova.darya.geolocation.entity;
 
 import org.greenrobot.greendao.annotation.Entity;
+import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.NotNull;
+
 import java.util.Date;
-import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.DaoException;
 
-@Entity(active=true, nameInDb = "geo_table", createInDb = true)
-public class GeoTableEntity {
+/**
+ * Created by darya on 04.12.16.
+ */
+@Entity(active=true, nameInDb = "acceleration_table", createInDb = true)
+public class AccelerationTableEntity {
     @Id
     @Generated
     private Long id;
 
     @NotNull
-    private Double lon;
+    private float accelX;
 
     @NotNull
-    private Double lat;
+    private float accelY;
+
+    @NotNull
+    private float accelZ;
 
     @NotNull
     private String deviceImei;
@@ -30,21 +37,62 @@ public class GeoTableEntity {
     private transient DaoSession daoSession;
 
     /** Used for active entity operations. */
-    @Generated(hash = 1137300505)
-    private transient GeoTableEntityDao myDao;
+    @Generated(hash = 1881560845)
+    private transient AccelerationTableEntityDao myDao;
 
-    @Generated(hash = 1211070947)
-    public GeoTableEntity(Long id, @NotNull Double lon, @NotNull Double lat,
-            @NotNull String deviceImei, @NotNull Date dataTime) {
+    @Generated(hash = 1790984198)
+    public AccelerationTableEntity(Long id, float accelX, float accelY,
+            float accelZ, @NotNull String deviceImei, @NotNull Date dataTime) {
         this.id = id;
-        this.lon = lon;
-        this.lat = lat;
+        this.accelX = accelX;
+        this.accelY = accelY;
+        this.accelZ = accelZ;
         this.deviceImei = deviceImei;
         this.dataTime = dataTime;
     }
 
-    @Generated(hash = 1657802203)
-    public GeoTableEntity() {
+    @Generated(hash = 1218035569)
+    public AccelerationTableEntity() {
+    }
+
+    public float getAccelX() {
+        return accelX;
+    }
+
+    public void setAccelX(float accelX) {
+        this.accelX = accelX;
+    }
+
+    public float getAccelY() {
+        return accelY;
+    }
+
+    public void setAccelY(float accelY) {
+        this.accelY = accelY;
+    }
+
+    public float getAccelZ() {
+        return accelZ;
+    }
+
+    public void setAccelZ(float accelZ) {
+        this.accelZ = accelZ;
+    }
+
+    public String getDeviceImei() {
+        return deviceImei;
+    }
+
+    public void setDeviceImei(String deviceImei) {
+        this.deviceImei = deviceImei;
+    }
+
+    public Date getDataTime() {
+        return dataTime;
+    }
+
+    public void setDataTime(Date dataTime) {
+        this.dataTime = dataTime;
     }
 
     public Long getId() {
@@ -53,38 +101,6 @@ public class GeoTableEntity {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Double getLon() {
-        return this.lon;
-    }
-
-    public void setLon(Double lon) {
-        this.lon = lon;
-    }
-
-    public Double getLat() {
-        return this.lat;
-    }
-
-    public void setLat(Double lat) {
-        this.lat = lat;
-    }
-
-    public String getDeviceImei() {
-        return this.deviceImei;
-    }
-
-    public void setDeviceImei(String deviceImei) {
-        this.deviceImei = deviceImei;
-    }
-
-    public Date getDataTime() {
-        return this.dataTime;
-    }
-
-    public void setDataTime(Date dataTime) {
-        this.dataTime = dataTime;
     }
 
     /**
@@ -124,9 +140,9 @@ public class GeoTableEntity {
     }
 
     /** called by internal mechanisms, do not call yourself. */
-    @Generated(hash = 254917696)
+    @Generated(hash = 143997178)
     public void __setDaoSession(DaoSession daoSession) {
         this.daoSession = daoSession;
-        myDao = daoSession != null ? daoSession.getGeoTableEntityDao() : null;
+        myDao = daoSession != null ? daoSession.getAccelerationTableEntityDao() : null;
     }
 }

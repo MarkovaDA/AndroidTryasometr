@@ -22,8 +22,10 @@ import android.widget.Toast;
 
 import java.util.Date;
 import ru.markova.darya.geolocation.config.GreenDaoBuilder;
+import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 import ru.markova.darya.geolocation.entity.DaoSession;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
+import ru.markova.darya.geolocation.service.DateTimeService;
 import ru.markova.darya.geolocation.service.SendDataFromDBService;
 import ru.markova.darya.geolocation.service.ShakeEventListener;
 
@@ -76,15 +78,21 @@ public class MainActivity extends AppCompatActivity {
 
         mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE); //менеджер для прослушивания датчиков
         mSensorListener = new ShakeEventListener();
+
+        //событие тряски
         mSensorListener.setOnShakeListener(new ShakeEventListener.OnShakeListener() {
 
             public void onShake() {
-                //Toast.makeText(KPBActivityImpl.this, "Shake!", Toast.LENGTH_SHORT).show();
+                System.out.println("SHAKING....");
+                Toast.makeText(MainActivity.this, "Shake!", Toast.LENGTH_SHORT).show();
+                saveAcceleration(mSensorListener.getAx(), mSensorListener.getAy(), mSensorListener.getAz());
             }
         });
 
         TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         deviceIMEI = telephonyManager.getDeviceId();
+
+        //получаем объект сессии для работы с базой данных
         daoSession = GreenDaoBuilder.getDaoSession(MainActivity.this);
         // создаем фильтр для BroadcastReceiver
         IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
@@ -115,13 +123,23 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
+    //сохраняем данные о местоположении
     private void saveLocation(Location location){
         GeoTableEntity entity = new GeoTableEntity();
         entity.setLon(location.getLongitude());
         entity.setLat(location.getLatitude());
-        entity.setDataTime(new Date(location.getTime()));
+        entity.setDataTime(DateTimeService.getDateAndTime(location));
         entity.setDeviceImei(deviceIMEI);
         daoSession.insert(entity);
+    }
+    //сохраняем в базу данных ускорения
+    private void saveAcceleration(float ax, float ay, float az){
+        AccelerationTableEntity entity = new AccelerationTableEntity();
+        entity.setAccelX(ax);
+        entity.setAccelY(ay);
+        entity.setAccelZ(az);
+        entity.setDeviceImei(deviceIMEI);
+        entity.setDataTime(DateTimeService.getCurrentDateAndTime());
     }
 
     private LocationListener locationListener = new LocationListener() {
@@ -173,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
     private String formatLocation(Location location) {
         if (location == null)
             return "location is unknown";
-        return String.format("Coordinates: lat = %1$.4f, lon = %2$.4f, time = %3$tF %3$tT", location.getLatitude(), location.getLongitude(), new Date(location.getTime()));
+        return String.format("Coordinates: lat = %1$.4f, lon = %2$.4f", location.getLatitude(), location.getLongitude());
     }
     //проверка доступности провайдеров
     private void checkEnabled() {
@@ -190,8 +208,8 @@ public class MainActivity extends AppCompatActivity {
     public void onClickShowMap(View view){
         Intent showMapActivityIntent = new Intent(this, ShowMapActivity.class);
         if (lastLocation != null) {
-            showMapActivityIntent.putExtra("lastLocationLon", Double.toString(lastLocation.getLongitude()));
-            showMapActivityIntent.putExtra("lastLocationLat", Double.toString(lastLocation.getLatitude()));
+            showMapActivityIntent.putExtra("lastLocationLon", lastLocation.getLongitude());
+            showMapActivityIntent.putExtra("lastLocationLat", lastLocation.getLatitude());
         }
         startActivity(showMapActivityIntent);
     }

@@ -3,19 +3,33 @@ package ru.markova.darya.geolocation.service;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 
 
 public class ShakeEventListener implements SensorEventListener{
 
     private String textInfo = "";
+    private Float ax;
+    private Float ay;
+    private Float az;
+
+    public Float getAx() {
+        return ax;
+    }
+
+    public Float getAy() {
+        return ay;
+    }
+
+    public Float getAz() {
+        return az;
+    }
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
-        float x = sensorEvent.values[0];
-        float y = sensorEvent.values[1];
-        float z = sensorEvent.values[2];
-        textInfo = String.format("%1$.1f\t\t%2$.1f\t\t%3$.1f", x, y, z);
+        ax = sensorEvent.values[0];
+        ay = sensorEvent.values[1];
+        az = sensorEvent.values[2];
+        textInfo = String.format("%1$.1f\t\t%2$.1f\t\t%3$.1f", ax, ay, az);
     }
 
     @Override

@@ -72,8 +72,6 @@ public class SendDataFromDBService extends Service{
 
     public void onDestroy(){
         super.onDestroy();
-        /*if (helper != null)
-            helper.close();*/
         if (checkAndSendHandler != null) {
             checkAndSendHandler.removeCallbacksAndMessages(null);
             checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
@@ -87,28 +85,25 @@ public class SendDataFromDBService extends Service{
         return super.onStartCommand(intent, flags, startId);
     }
 
-    private String getCurrentDate(){
-        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-        Date date = new Date();
-        return dateFormat.format(date);
-    }
 
     private Runnable dataSendRunnable = new Runnable() {
         @Override
         public void run() {
             checkAndSendHandler.removeCallbacksAndMessages(null);
             //засекать текущее время и выбирать из базы данных записи раньше этого времени
+
             List<LocationDTO> data = getSavedLocations();
             //Log.d(LOG_TAG, "TASK IS RUNNING...");
             System.out.println("TASK IS RUNNING");
 
             Call<Object> call = dataSendService.sendLocations(data);
+            //выбирать еще и сохранять периодически значения ускорений
             call.enqueue(new Callback<Object>() {
                 @Override
                 public void onResponse(Call<Object> call, Response<Object> response) {
                     //успешная отправка
                     Log.d(LOG_TAG, "SENDING DATA SUCCESS...");
-                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "sending success:" + getCurrentDate());
+                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "sending success:" + DateTimeService.getCurrentDateAndTime());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
@@ -118,7 +113,7 @@ public class SendDataFromDBService extends Service{
                     //неуспешная отправка
 
                     Log.d(LOG_TAG, "SENDING DATA FAILURE....");
-                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "sending fail:" + getCurrentDate());
+                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "sending fail:" + DateTimeService.getCurrentDateAndTime());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                     //попробовать здесь изменить статус отправки
