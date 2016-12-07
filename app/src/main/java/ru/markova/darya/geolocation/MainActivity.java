@@ -18,12 +18,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-
-import ru.markova.darya.geolocation.config.GreenDaoBuilder;
-import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
-import ru.markova.darya.geolocation.entity.DaoSession;
-import ru.markova.darya.geolocation.entity.GeoTableEntity;
-import ru.markova.darya.geolocation.service.DateTimeService;
+import ru.markova.darya.geolocation.service.LocalStorageService;
 import ru.markova.darya.geolocation.service.SendDataFromDBService;
 import ru.markova.darya.geolocation.service.ShakeEventSensor;
 
@@ -42,16 +37,15 @@ public class MainActivity extends AppCompatActivity {
     String   deviceIMEI;
     BroadcastReceiver brSending;
     private LocationManager locationManager;
-    private Location lastLocation; //последнее запомненное местоположение
+    private Location lastLocation;
 
-    private static DaoSession daoSession;
 
     final String LOG_TAG = "MainActivity";
 
     private Intent serverIntent;
     private SensorManager sensorManager;
     private ShakeEventSensor shakeEventListener;
-
+    private LocalStorageService localStorageService;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,11 +81,10 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
+        localStorageService = new LocalStorageService(MainActivity.this);
         TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         deviceIMEI = telephonyManager.getDeviceId();
 
-        //получаем объект сессии для работы с базой данных
-        daoSession = GreenDaoBuilder.getDaoSession(MainActivity.this);
         // создаем фильтр для BroadcastReceiver
         IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
         // регистрируем (включаем) BroadcastReceiver
@@ -112,9 +105,8 @@ public class MainActivity extends AppCompatActivity {
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 1, locationListener);
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 1, locationListener);
         sensorManager.registerListener(shakeEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                SensorManager.SENSOR_STATUS_ACCURACY_LOW);
+                SensorManager.SENSOR_DELAY_NORMAL);
 
-        //SensorManager.SENSOR_DELAY_NORMAL
         checkEnabled();
     }
 
@@ -123,27 +115,6 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
-    //сохраняем данные о местоположении
-    private void saveLocation(Location location){
-        GeoTableEntity entity = new GeoTableEntity();
-        entity.setLon(location.getLongitude());
-        entity.setLat(location.getLatitude());
-        entity.setDataTime(DateTimeService.getDateAndTime(location));
-        entity.setDeviceImei(deviceIMEI);
-        daoSession.insert(entity);
-    }
-
-    //сохраняем в базу данных ускорения
-    private void saveAcceleration(float[] accelerations){
-        //создать отдельный коннекшн к базе
-        AccelerationTableEntity entity = new AccelerationTableEntity();
-        entity.setAccelX(accelerations[0]);
-        entity.setAccelY(accelerations[1]);
-        entity.setAccelZ(accelerations[2]);
-        entity.setDeviceImei(deviceIMEI);
-        entity.setDataTime(DateTimeService.getCurrentDateAndTime());
-        daoSession.insert(entity);
-    }
 
     private LocationListener locationListener = new LocationListener() {
 
@@ -151,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
         public void onLocationChanged(Location location) {
             lastLocation = location; //запоминаем данные о местоположении
             showLocation(location);
-            saveLocation(location);
+            localStorageService.saveLocation(location, deviceIMEI);
         }
 
         @Override
@@ -220,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        GreenDaoBuilder.closeSession();
+        localStorageService.destroy(); //закрываем сессию для работы с базой
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.d(LOG_TAG, "SENDING DATA UNTOUCHED....");
             return;

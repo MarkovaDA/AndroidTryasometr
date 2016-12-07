@@ -9,10 +9,11 @@ public class GreenDaoBuilder {
 
     private static DaoSession daoSession;
     private static DaoMaster.DevOpenHelper helper;
+
     public static DaoSession getDaoSession(Context context){
 
         helper = new DaoMaster.DevOpenHelper(context, "tryasometr_local_storage");
-        Database db = helper.getWritableDb();
+        Database db = helper.getWritableDb();//вот здесь обратить внимание на метод(?)
         daoSession = new DaoMaster(db).newSession();
         return daoSession;
     }
