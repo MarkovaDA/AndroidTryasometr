@@ -16,6 +16,7 @@ import ru.markova.darya.geolocation.config.GreenDaoBuilder;
 import ru.markova.darya.geolocation.dto.LocationDTO;
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 import ru.markova.darya.geolocation.entity.AccelerationTableEntityDao;
+import ru.markova.darya.geolocation.entity.DaoMaster;
 import ru.markova.darya.geolocation.entity.DaoSession;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
 import ru.markova.darya.geolocation.entity.GeoTableEntityDao;
@@ -62,9 +63,29 @@ public class LocalStorageService {
         //List<LocationDTO> _list = (queryBuilder.build()).list(); проверка удаления
         return list;
     }
-    //вставить набор данных list<LocationDTO> из листа
 
-    //извлекаем данные об ускорениях
+    public List<AccelerationTableEntity> getSavedAccelerations(Date date){
+        QueryBuilder queryBuilder = daoSession.queryBuilder(AccelerationTableEntity.class).
+                where(AccelerationTableEntityDao.Properties.DataTime.lt(date));
+        Query query = queryBuilder.build();
+        List<AccelerationTableEntity> list = query.list();
+        queryBuilder.buildDelete().executeDeleteWithoutDetachingEntities();
+        return list;
+    }
+    public void insertLocation(GeoTableEntity entity){
+        daoSession.getGeoTableEntityDao().insert(entity);
+    }
+
+    public void insertAcceleration(AccelerationTableEntity entity){
+        daoSession.getAccelerationTableEntityDao().insert(entity);
+    }
+
+    public void insertLocationsBack(List<GeoTableEntity> list){
+        daoSession.getGeoTableEntityDao().insertInTx(list);
+    }
+    public void insertAccelerationsBack(List<AccelerationTableEntity> list){
+        daoSession.getAccelerationTableEntityDao().insertInTx(list);
+    }
     public void destroy(){
         GreenDaoBuilder.closeSession();
     }

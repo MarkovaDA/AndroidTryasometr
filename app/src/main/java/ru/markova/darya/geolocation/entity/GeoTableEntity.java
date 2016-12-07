@@ -2,11 +2,12 @@ package ru.markova.darya.geolocation.entity;
 
 import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Id;
+import org.greenrobot.greendao.annotation.Index;
 import org.greenrobot.greendao.annotation.NotNull;
 import java.util.Date;
 import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.DaoException;
-
+//создать индексы по дате и времени
 @Entity(active=true, nameInDb = "geo_table", createInDb = true)
 public class GeoTableEntity {
     @Id
@@ -23,6 +24,7 @@ public class GeoTableEntity {
     private String deviceImei;
 
     @NotNull
+    @Index
     private Date dataTime;
 
     /** Used to resolve relations */
