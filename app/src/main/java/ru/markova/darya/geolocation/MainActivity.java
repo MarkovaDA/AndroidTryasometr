@@ -18,16 +18,14 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import java.util.Date;
 import ru.markova.darya.geolocation.config.GreenDaoBuilder;
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 import ru.markova.darya.geolocation.entity.DaoSession;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
 import ru.markova.darya.geolocation.service.DateTimeService;
 import ru.markova.darya.geolocation.service.SendDataFromDBService;
-import ru.markova.darya.geolocation.service.ShakeEventListener;
+import ru.markova.darya.geolocation.service.ShakeEventSensor;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -41,9 +39,6 @@ public class MainActivity extends AppCompatActivity {
     TextView tvLocationNet;
     TextView txtStatusSending;
 
-    private SensorManager mSensorManager;
-    private ShakeEventListener mSensorListener;
-
     String   deviceIMEI;
     BroadcastReceiver brSending;
     private LocationManager locationManager;
@@ -54,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     final String LOG_TAG = "MainActivity";
 
     private Intent serverIntent;
+    private SensorManager sensorManager;
+    private ShakeEventSensor shakeEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,28 +64,29 @@ public class MainActivity extends AppCompatActivity {
         tvLocationNet = (TextView)findViewById(R.id.tvLocationNet);
         txtStatusSending = (TextView)findViewById(R.id.txtStatusSending);
 
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 
         brSending =  new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 String status = intent.getExtras().get(MainActivity.STATUS_SENDING_PARAM).toString();
                 txtStatusSending.setText(status);
+
             }
         };
+        sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+        shakeEventListener = new ShakeEventSensor();
 
-        mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE); //менеджер для прослушивания датчиков
-        mSensorListener = new ShakeEventListener();
+        shakeEventListener.setOnShakeListener(
+                new ShakeEventSensor.OnShakeListener() {
 
-        //событие тряски
-        mSensorListener.setOnShakeListener(new ShakeEventListener.OnShakeListener() {
-
-            public void onShake() {
-                System.out.println("SHAKING....");
-                Toast.makeText(MainActivity.this, "Shake!", Toast.LENGTH_SHORT).show();
-                saveAcceleration(mSensorListener.getAx(), mSensorListener.getAy(), mSensorListener.getAz());
-            }
-        });
-
+                    @Override
+                    public void onShake() {
+                        float[] accel = shakeEventListener.getAccellrations();
+                        String info =  String.format("SHAKING: ax = %1$.4f, ay = %2$.4f, az=%3$.4f", accel[0],accel[1],accel[2]);
+                        System.out.println(info);
+                    }
+                }
+        );
         TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         deviceIMEI = telephonyManager.getDeviceId();
 
@@ -113,8 +111,10 @@ public class MainActivity extends AppCompatActivity {
         //вешаем слушателя на два типа провайдеров
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 1, locationListener);
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 1, locationListener);
-        //зарегистрировали слушателя события тряски
-        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(shakeEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                SensorManager.SENSOR_STATUS_ACCURACY_LOW);
+
+        //SensorManager.SENSOR_DELAY_NORMAL
         checkEnabled();
     }
 
@@ -132,14 +132,17 @@ public class MainActivity extends AppCompatActivity {
         entity.setDeviceImei(deviceIMEI);
         daoSession.insert(entity);
     }
+
     //сохраняем в базу данных ускорения
-    private void saveAcceleration(float ax, float ay, float az){
+    private void saveAcceleration(float[] accelerations){
+        //создать отдельный коннекшн к базе
         AccelerationTableEntity entity = new AccelerationTableEntity();
-        entity.setAccelX(ax);
-        entity.setAccelY(ay);
-        entity.setAccelZ(az);
+        entity.setAccelX(accelerations[0]);
+        entity.setAccelY(accelerations[1]);
+        entity.setAccelZ(accelerations[2]);
         entity.setDeviceImei(deviceIMEI);
         entity.setDataTime(DateTimeService.getCurrentDateAndTime());
+        daoSession.insert(entity);
     }
 
     private LocationListener locationListener = new LocationListener() {
@@ -226,13 +229,11 @@ public class MainActivity extends AppCompatActivity {
         stopService(serverIntent);
         //отключаем слушателя
         locationManager.removeUpdates(locationListener);
-        //отписываем слушателя события тряски
-        mSensorManager.unregisterListener(mSensorListener);
+        shakeEventListener.setOnShakeListener(null);
     }
+
     //отобразить информацию о перегрузочном ускорении
     public void showAccelerationInfo(View view){
-        Toast toast = Toast.makeText(getApplicationContext(),mSensorListener.getTextInfo(), Toast.LENGTH_LONG);
-        toast.show();
     }
 
 }

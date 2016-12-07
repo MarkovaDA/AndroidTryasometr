@@ -16,7 +16,7 @@ public class DateTimeService {
 
     public static Date getCurrentDateAndTime(){
         DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-        dateFormat.setTimeZone(TimeZone.getTimeZone("Europe/Minsk"));
+        //dateFormat.setTimeZone(TimeZone.getTimeZone("Europe/Minsk"));
         Date date = new Date();
         try {
             date = dateFormat.parse(dateFormat.format(date));
@@ -30,7 +30,7 @@ public class DateTimeService {
     public static Date getDateAndTime(Location location){
         Date d = new Date(location.getTime());
         DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-        dateFormat.setTimeZone(TimeZone.getTimeZone("Europe/Minsk"));
+        //dateFormat.setTimeZone(TimeZone.getTimeZone("Europe/Minsk"));
         Date date = null;
         try {
             date = dateFormat.parse(dateFormat.format(d));

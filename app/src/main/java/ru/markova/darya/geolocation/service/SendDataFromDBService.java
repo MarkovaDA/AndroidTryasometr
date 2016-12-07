@@ -85,7 +85,7 @@ public class SendDataFromDBService extends Service{
         return super.onStartCommand(intent, flags, startId);
     }
 
-
+    //продумать - выполнить отправку, в случае неуспеха вернуть данные назад, при отправке подчищать
     private Runnable dataSendRunnable = new Runnable() {
         @Override
         public void run() {
@@ -94,8 +94,6 @@ public class SendDataFromDBService extends Service{
 
             List<LocationDTO> data = getSavedLocations();
             //Log.d(LOG_TAG, "TASK IS RUNNING...");
-            System.out.println("TASK IS RUNNING");
-
             Call<Object> call = dataSendService.sendLocations(data);
             //выбирать еще и сохранять периодически значения ускорений
             call.enqueue(new Callback<Object>() {
