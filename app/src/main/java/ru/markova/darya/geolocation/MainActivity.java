@@ -18,8 +18,12 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+
+import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
+import ru.markova.darya.geolocation.entity.GeoTableEntity;
+import ru.markova.darya.geolocation.service.DateTimeService;
 import ru.markova.darya.geolocation.service.LocalStorageService;
-import ru.markova.darya.geolocation.service.SendDataFromDBService;
+import ru.markova.darya.geolocation.service.SendDataToServerService;
 import ru.markova.darya.geolocation.service.ShakeEventSensor;
 
 public class MainActivity extends AppCompatActivity {
@@ -77,19 +81,22 @@ public class MainActivity extends AppCompatActivity {
                     public void onShake() {
                         float[] accel = shakeEventListener.getAccellrations();
                         String info =  String.format("SHAKING: ax = %1$.4f, ay = %2$.4f, az=%3$.4f", accel[0],accel[1],accel[2]);
+                        AccelerationTableEntity entity = new AccelerationTableEntity();
+                        entity.setDeviceImei(deviceIMEI);
+                        entity.setAccelX(accel[0]); entity.setAccelY(accel[1]);entity.setAccelZ(accel[2]);
+                        entity.setDataTime(DateTimeService.getCurrentDateAndTime());
+                        localStorageService.insertAcceleration(entity);
                         System.out.println(info);
                     }
                 }
         );
-        localStorageService = new LocalStorageService(MainActivity.this);
         TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         deviceIMEI = telephonyManager.getDeviceId();
-
         // создаем фильтр для BroadcastReceiver
         IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
         // регистрируем (включаем) BroadcastReceiver
         registerReceiver(brSending, intentFilter);
-        serverIntent = new Intent(this, SendDataFromDBService.class);
+        serverIntent = new Intent(this, SendDataToServerService.class);
         startService(serverIntent);//запускаем службу отправки координат
     }
 
@@ -101,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("onResume(): приложение не имеет доступа к службе геолокации");
             return;
         }
+        localStorageService = new LocalStorageService(MainActivity.this);
         //вешаем слушателя на два типа провайдеров
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 1, locationListener);
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 1, locationListener);
@@ -122,7 +130,12 @@ public class MainActivity extends AppCompatActivity {
         public void onLocationChanged(Location location) {
             lastLocation = location; //запоминаем данные о местоположении
             showLocation(location);
-            localStorageService.saveLocation(location, deviceIMEI);
+            GeoTableEntity entity = new GeoTableEntity();
+            entity.setLat(location.getLatitude());
+            entity.setLon(location.getLongitude());
+            entity.setDataTime(DateTimeService.getDateAndTime(location));
+            entity.setDeviceImei(deviceIMEI);
+            localStorageService.insertLocation(entity);
         }
 
         @Override

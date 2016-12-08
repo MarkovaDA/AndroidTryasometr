@@ -11,6 +11,7 @@ import android.widget.Toast;
 import org.greenrobot.greendao.database.Database;
 import org.greenrobot.greendao.query.Query;
 
+import java.util.Date;
 import java.util.List;
 
 import retrofit2.Call;
@@ -19,11 +20,12 @@ import retrofit2.Response;
 import ru.markova.darya.geolocation.MainActivity;
 import ru.markova.darya.geolocation.config.RetrofitBuilder;
 import ru.markova.darya.geolocation.dto.LocationDTO;
+import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 import ru.markova.darya.geolocation.entity.DaoMaster;
 import ru.markova.darya.geolocation.entity.DaoSession;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
 
-public class SendDataFromDBService extends Service{
+public class SendDataToServerService extends Service{
 
     final String LOG_TAG = "SendDataFromDBService";
     private  final static  Long CHECK_INTERVAL = 5 * 1000L; //интервал запуска
@@ -37,20 +39,7 @@ public class SendDataFromDBService extends Service{
 
     private  DaoSession daoSession;
 
-    //получаем старые координаты
-    /*private List<LocationDTO> getSavedLocations(){
-
-        Query query = daoSession.queryBuilder(GeoTableEntity.class).build();
-        List<LocationDTO> locations = query.list();
-        return locations;
-    }*/
-
     private Intent intent;
-
-    /*//очистка координат
-    private void clearLocalStorage(){
-        daoSession.deleteAll(GeoTableEntity.class);
-    }*/
 
     @Nullable
     @Override
@@ -62,10 +51,6 @@ public class SendDataFromDBService extends Service{
         super.onCreate();
         intent = new Intent(MainActivity.BROADCAST_ACTION);
         localStorageService = new LocalStorageService(this);
-        //создаем новую сессию для работы с бд -
-        /*helper = new DaoMaster.DevOpenHelper(this, "tryasometr_local_storage");
-        Database db = helper.getWritableDb();
-        daoSession = new DaoMaster(db).newSession();*/
         checkAndSendHandler = new Handler();
         dataSendService = RetrofitBuilder.getDataSendService();
     }
@@ -85,14 +70,16 @@ public class SendDataFromDBService extends Service{
         return super.onStartCommand(intent, flags, startId);
     }
 
-    //продумать - выполнить отправку, в случае неуспеха вернуть данные назад, при отправке подчищать
+
     private Runnable dataSendRunnable = new Runnable() {
         @Override
         public void run() {
             checkAndSendHandler.removeCallbacksAndMessages(null);
-            List<LocationDTO> data = localStorageService.getSavedLocations(DateTimeService.getCurrentDateAndTime());
-            Call<Object> call = dataSendService.sendLocations(data);
-            //выбирать еще и сохранять периодически значения ускорений
+            Date currentDate = DateTimeService.getCurrentDateAndTime();
+            final List<GeoTableEntity> locations = localStorageService.getSavedLocations(currentDate);
+            final List<AccelerationTableEntity> accelerations = localStorageService.getSavedAccelerations(currentDate);
+            Call<Object> call = dataSendService.sendLocations(locations);
+            //отправка координат на сервер
             call.enqueue(new Callback<Object>() {
                 @Override
                 public void onResponse(Call<Object> call, Response<Object> response) {
@@ -102,11 +89,11 @@ public class SendDataFromDBService extends Service{
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
-
                 @Override
                 public void onFailure(Call<Object> call, Throwable t) {
                     //неуспешная отправка
                     Log.d(LOG_TAG, "SENDING DATA FAILURE....");
+                    localStorageService.insertLocationsBack(locations);//возвращаем неотправленные данные назад
                     intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "sending fail:" + DateTimeService.getCurrentDateAndTime());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);

@@ -53,14 +53,12 @@ public class LocalStorageService {
     }
     //AccelerationTableEntityDao.Properties.DataTime.lt(date)
     //получаем старые координаты до определённого момента времени
-    public List<LocationDTO> getSavedLocations(Date date){
+    public List<GeoTableEntity> getSavedLocations(Date date){
         QueryBuilder queryBuilder = daoSession.queryBuilder(GeoTableEntity.class).
                 where(GeoTableEntityDao.Properties.DataTime.lt(date));
-                //.build();
         Query query = queryBuilder.build();
-        List<LocationDTO> list = query.list();
+        List<GeoTableEntity> list = query.list();
         queryBuilder.buildDelete().executeDeleteWithoutDetachingEntities();
-        //List<LocationDTO> _list = (queryBuilder.build()).list(); проверка удаления
         return list;
     }
 
@@ -73,11 +71,13 @@ public class LocalStorageService {
         return list;
     }
     public void insertLocation(GeoTableEntity entity){
-        daoSession.getGeoTableEntityDao().insert(entity);
+        //daoSession.getGeoTableEntityDao().insert(entity);
+        daoSession.insert(entity);
     }
 
     public void insertAcceleration(AccelerationTableEntity entity){
-        daoSession.getAccelerationTableEntityDao().insert(entity);
+        //daoSession.getAccelerationTableEntityDao().insert(entity);
+        daoSession.insert(entity);
     }
 
     public void insertLocationsBack(List<GeoTableEntity> list){
