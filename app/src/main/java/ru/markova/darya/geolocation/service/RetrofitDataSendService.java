@@ -14,5 +14,5 @@ public interface RetrofitDataSendService {
     Call<Object> sendLocations(@Body List<GeoTableEntity> locations);
 
     @POST("/state/accel")
-    Call<Object> sendAccelerations(@Body List<AccelerationTableEntity> locations);
+    Call<Object> sendAccelerations(@Body List<AccelerationTableEntity> accelerations);
 }

@@ -23,7 +23,8 @@ import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
 import ru.markova.darya.geolocation.service.DateTimeService;
 import ru.markova.darya.geolocation.service.LocalStorageService;
-import ru.markova.darya.geolocation.service.SendDataToServerService;
+import ru.markova.darya.geolocation.service.SendAccelerationToServerService;
+import ru.markova.darya.geolocation.service.SendLocationToServerService;
 import ru.markova.darya.geolocation.service.ShakeEventSensor;
 
 public class MainActivity extends AppCompatActivity {
@@ -39,17 +40,20 @@ public class MainActivity extends AppCompatActivity {
     TextView txtStatusSending;
 
     String   deviceIMEI;
-    BroadcastReceiver brSending;
+    BroadcastReceiver broadcastReceiver;
     private LocationManager locationManager;
     private Location lastLocation;
 
 
     final String LOG_TAG = "MainActivity";
 
-    private Intent serverIntent;
+    private Intent serverLocationIntent;
+    private Intent serverAccelerIntent;
+
     private SensorManager sensorManager;
     private ShakeEventSensor shakeEventListener;
     private LocalStorageService localStorageService;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,11 +68,10 @@ public class MainActivity extends AppCompatActivity {
 
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 
-        brSending =  new BroadcastReceiver() {
+        broadcastReceiver =  new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 String status = intent.getExtras().get(MainActivity.STATUS_SENDING_PARAM).toString();
                 txtStatusSending.setText(status);
-
             }
         };
         sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
@@ -95,9 +98,11 @@ public class MainActivity extends AppCompatActivity {
         // создаем фильтр для BroadcastReceiver
         IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
         // регистрируем (включаем) BroadcastReceiver
-        registerReceiver(brSending, intentFilter);
-        serverIntent = new Intent(this, SendDataToServerService.class);
-        startService(serverIntent);//запускаем службу отправки координат
+        registerReceiver(broadcastReceiver, intentFilter);
+        serverLocationIntent = new Intent(this, SendLocationToServerService.class);
+        serverAccelerIntent = new Intent(this, SendAccelerationToServerService.class);
+        startService(serverLocationIntent);//запускаем службу отправки координат
+        startService(serverAccelerIntent); //запускаем службу отправки ускорений
     }
 
     @Override
@@ -114,7 +119,6 @@ public class MainActivity extends AppCompatActivity {
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 1, locationListener);
         sensorManager.registerListener(shakeEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
                 SensorManager.SENSOR_DELAY_NORMAL);
-
         checkEnabled();
     }
 
@@ -209,8 +213,9 @@ public class MainActivity extends AppCompatActivity {
             Log.d(LOG_TAG, "SENDING DATA UNTOUCHED....");
             return;
         }
-        unregisterReceiver(brSending);
-        stopService(serverIntent);
+        unregisterReceiver(broadcastReceiver);
+        stopService(serverLocationIntent);
+        stopService(serverAccelerIntent);
         //отключаем слушателя
         locationManager.removeUpdates(locationListener);
         shakeEventListener.setOnShakeListener(null);

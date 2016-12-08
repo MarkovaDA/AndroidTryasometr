@@ -25,19 +25,16 @@ import ru.markova.darya.geolocation.entity.DaoMaster;
 import ru.markova.darya.geolocation.entity.DaoSession;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
 
-public class SendDataToServerService extends Service{
+public class SendLocationToServerService extends Service{
 
     final String LOG_TAG = "SendDataFromDBService";
     private  final static  Long CHECK_INTERVAL = 5 * 1000L; //интервал запуска
 
     private Handler checkAndSendHandler = null;
-    private DaoMaster.DevOpenHelper helper;
     //сервис для отправки запросов на сервер
     private  RetrofitDataSendService dataSendService;
     //сервис для работы с локальной базой данных
     private LocalStorageService localStorageService;
-
-    private  DaoSession daoSession;
 
     private Intent intent;
 
@@ -65,7 +62,7 @@ public class SendDataToServerService extends Service{
 
 
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Toast.makeText(this, "Служба запущена", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Служба отправки координат запущена", Toast.LENGTH_SHORT).show();
         checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
         return super.onStartCommand(intent, flags, startId);
     }
@@ -75,26 +72,26 @@ public class SendDataToServerService extends Service{
         @Override
         public void run() {
             checkAndSendHandler.removeCallbacksAndMessages(null);
-            Date currentDate = DateTimeService.getCurrentDateAndTime();
+            final Date currentDate = DateTimeService.getCurrentDateAndTime();
             final List<GeoTableEntity> locations = localStorageService.getSavedLocations(currentDate);
-            final List<AccelerationTableEntity> accelerations = localStorageService.getSavedAccelerations(currentDate);
             Call<Object> call = dataSendService.sendLocations(locations);
+
             //отправка координат на сервер
             call.enqueue(new Callback<Object>() {
                 @Override
                 public void onResponse(Call<Object> call, Response<Object> response) {
                     //успешная отправка
-                    Log.d(LOG_TAG, "SENDING DATA SUCCESS...");
-                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "sending success:" + DateTimeService.getCurrentDateAndTime());
+                    Log.d(LOG_TAG, "SENDING LOCATIONS SUCCESS...");
+                    localStorageService.deleteLocations(currentDate);
+                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "locations success:" + DateTimeService.getCurrentDateAndTime());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
                 @Override
                 public void onFailure(Call<Object> call, Throwable t) {
                     //неуспешная отправка
-                    Log.d(LOG_TAG, "SENDING DATA FAILURE....");
-                    localStorageService.insertLocationsBack(locations);//возвращаем неотправленные данные назад
-                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "sending fail:" + DateTimeService.getCurrentDateAndTime());
+                    Log.d(LOG_TAG, "SENDING LOCATIONS FAILURE....");
+                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "locations fail:" + DateTimeService.getCurrentDateAndTime());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }

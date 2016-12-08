@@ -31,44 +31,16 @@ public class LocalStorageService {
         daoSession = GreenDaoBuilder.getDaoSession(context);
     }
 
-    //сохраняем данные о местоположении
-    public void saveLocation(Location location, String deviceIMEI){
-        GeoTableEntity entity = new GeoTableEntity();
-        entity.setLon(location.getLongitude());
-        entity.setLat(location.getLatitude());
-        entity.setDataTime(DateTimeService.getDateAndTime(location));
-        entity.setDeviceImei(deviceIMEI);
-        daoSession.insert(entity);
-    }
-
-    //сохраняем в базу данных ускорения
-    public void saveAcceleration(float[] accelerations, String deviceIMEI){
-        AccelerationTableEntity entity = new AccelerationTableEntity();
-        entity.setAccelX(accelerations[0]);
-        entity.setAccelY(accelerations[1]);
-        entity.setAccelZ(accelerations[2]);
-        entity.setDeviceImei(deviceIMEI);
-        entity.setDataTime(DateTimeService.getCurrentDateAndTime());
-        daoSession.insert(entity);
-    }
-    //AccelerationTableEntityDao.Properties.DataTime.lt(date)
-    //получаем старые координаты до определённого момента времени
     public List<GeoTableEntity> getSavedLocations(Date date){
-        QueryBuilder queryBuilder = daoSession.queryBuilder(GeoTableEntity.class).
-                where(GeoTableEntityDao.Properties.DataTime.lt(date));
-        Query query = queryBuilder.build();
-        List<GeoTableEntity> list = query.list();
-        queryBuilder.buildDelete().executeDeleteWithoutDetachingEntities();
-        return list;
+        Query query= daoSession.queryBuilder(GeoTableEntity.class).
+                where(GeoTableEntityDao.Properties.DataTime.lt(date)).build();
+        return query.list();
     }
 
     public List<AccelerationTableEntity> getSavedAccelerations(Date date){
-        QueryBuilder queryBuilder = daoSession.queryBuilder(AccelerationTableEntity.class).
-                where(AccelerationTableEntityDao.Properties.DataTime.lt(date));
-        Query query = queryBuilder.build();
-        List<AccelerationTableEntity> list = query.list();
-        queryBuilder.buildDelete().executeDeleteWithoutDetachingEntities();
-        return list;
+        Query query = daoSession.queryBuilder(AccelerationTableEntity.class).
+                where(AccelerationTableEntityDao.Properties.DataTime.lt(date)).build();
+        return query.list();
     }
     public void insertLocation(GeoTableEntity entity){
         //daoSession.getGeoTableEntityDao().insert(entity);
@@ -86,6 +58,17 @@ public class LocalStorageService {
     public void insertAccelerationsBack(List<AccelerationTableEntity> list){
         daoSession.getAccelerationTableEntityDao().insertInTx(list);
     }
+    public void deleteAccelerations(Date date){
+        daoSession.queryBuilder(AccelerationTableEntity.class).
+                where(AccelerationTableEntityDao.Properties.DataTime.lt(date))
+                .buildDelete().executeDeleteWithoutDetachingEntities();
+    }
+    public void deleteLocations(Date date){
+        daoSession.queryBuilder(GeoTableEntity.class).
+                where(GeoTableEntityDao.Properties.DataTime.lt(date))
+                .buildDelete().executeDeleteWithoutDetachingEntities();
+    }
+
     public void destroy(){
         GreenDaoBuilder.closeSession();
     }
