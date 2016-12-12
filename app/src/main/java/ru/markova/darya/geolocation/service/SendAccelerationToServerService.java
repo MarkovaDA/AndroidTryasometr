@@ -68,15 +68,15 @@ public class SendAccelerationToServerService extends Service{
     private Runnable dataSendRunnable = new Runnable() {
         @Override
         public void run() {
+            //ВООБЩЕ НЕ ДОХОДЯТ ДО СЕРВЕРА
             checkAndSendHandler.removeCallbacksAndMessages(null);
             final Date currentDate = DateTimeService.getCurrentDateAndTime();
             final List<AccelerationTableEntity> accelerations = localStorageService.getSavedAccelerations(currentDate);
-            Call<Object> call = dataSendService.sendAccelerations(accelerations);
-
+            Call<String> call = dataSendService.sendAccelerations(accelerations);
             //отправка координат на сервер
-            call.enqueue(new Callback<Object>() {
+            call.enqueue(new Callback<String>() {
                 @Override
-                public void onResponse(Call<Object> call, Response<Object> response) {
+                public void onResponse(Call<String> call, Response<String> response) {
                     //успешная отправка
                     Log.d(LOG_TAG, "SENDING ACCELERATIONS SUCCESS...");
                     //удаляем
@@ -86,7 +86,7 @@ public class SendAccelerationToServerService extends Service{
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
                 @Override
-                public void onFailure(Call<Object> call, Throwable t) {
+                public void onFailure(Call<String> call, Throwable t) {
                     //неуспешная отправка
                     Log.d(LOG_TAG, "SENDING ACCELERATIONS FAILURE....");
                     intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "fail accelerations:" + DateTimeService.getCurrentDateAndTime());

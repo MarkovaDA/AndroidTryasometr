@@ -16,7 +16,7 @@ public class RetrofitBuilder {
 
     private static Gson gson;
 
-    private static final String URL = "https://vps3.vistar.su";
+    private static final String URL = "http://192.168.43.7:8080/tryasometr/";
 
     private static Retrofit retrofit;
 

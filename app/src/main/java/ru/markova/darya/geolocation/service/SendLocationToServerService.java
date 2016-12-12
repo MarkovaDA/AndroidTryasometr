@@ -74,12 +74,12 @@ public class SendLocationToServerService extends Service{
             checkAndSendHandler.removeCallbacksAndMessages(null);
             final Date currentDate = DateTimeService.getCurrentDateAndTime();
             final List<GeoTableEntity> locations = localStorageService.getSavedLocations(currentDate);
-            Call<Object> call = dataSendService.sendLocations(locations);
+            Call<String> call = dataSendService.sendLocations(locations);
 
             //отправка координат на сервер
-            call.enqueue(new Callback<Object>() {
+            call.enqueue(new Callback<String>() {
                 @Override
-                public void onResponse(Call<Object> call, Response<Object> response) {
+                public void onResponse(Call<String> call, Response<String> response) {
                     //успешная отправка
                     Log.d(LOG_TAG, "SENDING LOCATIONS SUCCESS...");
                     localStorageService.deleteLocations(currentDate);
@@ -88,7 +88,7 @@ public class SendLocationToServerService extends Service{
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
                 @Override
-                public void onFailure(Call<Object> call, Throwable t) {
+                public void onFailure(Call<String> call, Throwable t) {
                     //неуспешная отправка
                     Log.d(LOG_TAG, "SENDING LOCATIONS FAILURE....");
                     intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "locations fail:" + DateTimeService.getCurrentDateAndTime());

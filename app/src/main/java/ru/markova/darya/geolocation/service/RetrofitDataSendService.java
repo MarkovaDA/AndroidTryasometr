@@ -10,9 +10,10 @@ import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
 
 public interface RetrofitDataSendService {
-    @POST("/state/geo")
-    Call<Object> sendLocations(@Body List<GeoTableEntity> locations);
 
-    @POST("/state/accel")
-    Call<Object> sendAccelerations(@Body List<AccelerationTableEntity> accelerations);
+    @POST("save_location/")
+    Call<String> sendLocations(@Body List<GeoTableEntity> locations);
+
+    @POST("save_acceleration/")
+    Call<String> sendAccelerations(@Body List<AccelerationTableEntity> accelerations);
 }
