@@ -17,6 +17,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import ru.markova.darya.geolocation.MainActivity;
 import ru.markova.darya.geolocation.config.RetrofitBuilder;
+import ru.markova.darya.geolocation.dto.ResponseEntity;
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 import ru.markova.darya.geolocation.entity.DaoMaster;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
@@ -68,15 +69,15 @@ public class SendAccelerationToServerService extends Service{
     private Runnable dataSendRunnable = new Runnable() {
         @Override
         public void run() {
-            //ВООБЩЕ НЕ ДОХОДЯТ ДО СЕРВЕРА
+
             checkAndSendHandler.removeCallbacksAndMessages(null);
             final Date currentDate = DateTimeService.getCurrentDateAndTime();
             final List<AccelerationTableEntity> accelerations = localStorageService.getSavedAccelerations(currentDate);
-            Call<String> call = dataSendService.sendAccelerations(accelerations);
+            Call<ResponseEntity> call = dataSendService.sendAccelerations(accelerations);
             //отправка координат на сервер
-            call.enqueue(new Callback<String>() {
+            call.enqueue(new Callback<ResponseEntity>() {
                 @Override
-                public void onResponse(Call<String> call, Response<String> response) {
+                public void onResponse(Call<ResponseEntity> call, Response<ResponseEntity> response) {
                     //успешная отправка
                     Log.d(LOG_TAG, "SENDING ACCELERATIONS SUCCESS...");
                     //удаляем
@@ -86,7 +87,7 @@ public class SendAccelerationToServerService extends Service{
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
                 @Override
-                public void onFailure(Call<String> call, Throwable t) {
+                public void onFailure(Call<ResponseEntity> call, Throwable t) {
                     //неуспешная отправка
                     Log.d(LOG_TAG, "SENDING ACCELERATIONS FAILURE....");
                     intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "fail accelerations:" + DateTimeService.getCurrentDateAndTime());

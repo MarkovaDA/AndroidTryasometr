@@ -14,9 +14,11 @@ public class RetrofitBuilder {
 
     private RetrofitBuilder(){}
 
-    private static Gson gson;
-
-    private static final String URL = "http://192.168.43.7:8080/tryasometr/";
+    private static Gson gson = new GsonBuilder()
+            .setLenient()
+            .create();
+    //192.168.43.7
+    private static final String URL = "http://192.168.15.226:8080/tryasometr/";
 
     private static Retrofit retrofit;
 
@@ -26,7 +28,7 @@ public class RetrofitBuilder {
         if (dataSendService == null){
             gson = new GsonBuilder().create();
             retrofit = new Retrofit.Builder()
-                    .addConverterFactory(GsonConverterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create(gson))
                     .baseUrl(URL)
                     .build();
             dataSendService = retrofit.create(RetrofitDataSendService.class);

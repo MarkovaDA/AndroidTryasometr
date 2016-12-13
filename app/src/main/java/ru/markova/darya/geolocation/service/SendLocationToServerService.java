@@ -11,15 +11,18 @@ import android.widget.Toast;
 import org.greenrobot.greendao.database.Database;
 import org.greenrobot.greendao.query.Query;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+import okhttp3.Interceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import ru.markova.darya.geolocation.MainActivity;
 import ru.markova.darya.geolocation.config.RetrofitBuilder;
 import ru.markova.darya.geolocation.dto.LocationDTO;
+import ru.markova.darya.geolocation.dto.ResponseEntity;
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 import ru.markova.darya.geolocation.entity.DaoMaster;
 import ru.markova.darya.geolocation.entity.DaoSession;
@@ -32,7 +35,7 @@ public class SendLocationToServerService extends Service{
 
     private Handler checkAndSendHandler = null;
     //сервис для отправки запросов на сервер
-    private  RetrofitDataSendService dataSendService;
+    private RetrofitDataSendService dataSendService;
     //сервис для работы с локальной базой данных
     private LocalStorageService localStorageService;
 
@@ -74,12 +77,12 @@ public class SendLocationToServerService extends Service{
             checkAndSendHandler.removeCallbacksAndMessages(null);
             final Date currentDate = DateTimeService.getCurrentDateAndTime();
             final List<GeoTableEntity> locations = localStorageService.getSavedLocations(currentDate);
-            Call<String> call = dataSendService.sendLocations(locations);
+            Call<ResponseEntity> call = dataSendService.sendLocations(locations);
 
             //отправка координат на сервер
-            call.enqueue(new Callback<String>() {
+            call.enqueue(new Callback<ResponseEntity>() {
                 @Override
-                public void onResponse(Call<String> call, Response<String> response) {
+                public void onResponse(Call<ResponseEntity> call, Response<ResponseEntity> response) {
                     //успешная отправка
                     Log.d(LOG_TAG, "SENDING LOCATIONS SUCCESS...");
                     localStorageService.deleteLocations(currentDate);
@@ -88,9 +91,9 @@ public class SendLocationToServerService extends Service{
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
                 @Override
-                public void onFailure(Call<String> call, Throwable t) {
+                public void onFailure(Call<ResponseEntity> call, Throwable t) {
                     //неуспешная отправка
-                    Log.d(LOG_TAG, "SENDING LOCATIONS FAILURE....");
+                    Log.d(LOG_TAG, "SENDING LOCATIONS FAILURE...");
                     intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "locations fail:" + DateTimeService.getCurrentDateAndTime());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
