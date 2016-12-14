@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -17,10 +18,10 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import ru.markova.darya.geolocation.MainActivity;
 import ru.markova.darya.geolocation.config.RetrofitBuilder;
-import ru.markova.darya.geolocation.dto.ResponseEntity;
+import ru.markova.darya.geolocation.dto.AccelerationDTO;
+import ru.markova.darya.geolocation.dto.LocationDTO;
+import ru.markova.darya.geolocation.dto.ResponseEntityDTO;
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
-import ru.markova.darya.geolocation.entity.DaoMaster;
-import ru.markova.darya.geolocation.entity.GeoTableEntity;
 
 public class SendAccelerationToServerService extends Service{
 
@@ -73,21 +74,27 @@ public class SendAccelerationToServerService extends Service{
             checkAndSendHandler.removeCallbacksAndMessages(null);
             final Date currentDate = DateTimeService.getCurrentDateAndTime();
             final List<AccelerationTableEntity> accelerations = localStorageService.getSavedAccelerations(currentDate);
-            Call<ResponseEntity> call = dataSendService.sendAccelerations(accelerations);
+            final List<AccelerationDTO> accelerationDTOs = new ArrayList<>();
+
+            for(int i=0; i<accelerations.size();i++){
+                accelerationDTOs.add(new AccelerationDTO(accelerations.get(i)));
+            }
+
+            Call<ResponseEntityDTO> call = dataSendService.sendAccelerations(accelerationDTOs);
             //отправка координат на сервер
-            call.enqueue(new Callback<ResponseEntity>() {
+            call.enqueue(new Callback<ResponseEntityDTO>() {
                 @Override
-                public void onResponse(Call<ResponseEntity> call, Response<ResponseEntity> response) {
+                public void onResponse(Call<ResponseEntityDTO> call, Response<ResponseEntityDTO> response) {
                     //успешная отправка
                     Log.d(LOG_TAG, "SENDING ACCELERATIONS SUCCESS...");
                     //удаляем
-                    localStorageService.deleteAccelerations(currentDate);
+                    //localStorageService.deleteAccelerations(currentDate);
                     intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "success accelerations:" + DateTimeService.getCurrentDateAndTime());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
                 @Override
-                public void onFailure(Call<ResponseEntity> call, Throwable t) {
+                public void onFailure(Call<ResponseEntityDTO> call, Throwable t) {
                     //неуспешная отправка
                     Log.d(LOG_TAG, "SENDING ACCELERATIONS FAILURE....");
                     intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "fail accelerations:" + DateTimeService.getCurrentDateAndTime());

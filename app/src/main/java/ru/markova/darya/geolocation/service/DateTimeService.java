@@ -15,29 +15,15 @@ import java.util.TimeZone;
 public class DateTimeService {
 
     public static Date getCurrentDateAndTime(){
-        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-        //dateFormat.setTimeZone(TimeZone.getTimeZone("Europe/Minsk"));
-        Date date = new Date();
-        try {
-            date = dateFormat.parse(dateFormat.format(date));
-        } catch (ParseException e) {
-            System.out.println("PARSE ERROR  EXCEPTION IN DATETIMESERVICE");
-            e.printStackTrace();
-        }
-        return date;
+        /*DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        return dateFormat.format(new Date());*/
+
+        return new Date();
     }
 
     public static Date getDateAndTime(Location location){
-        Date d = new Date(location.getTime());
-        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-        //dateFormat.setTimeZone(TimeZone.getTimeZone("Europe/Minsk"));
-        Date date = null;
-        try {
-            date = dateFormat.parse(dateFormat.format(d));
-        } catch (ParseException e) {
-            System.out.println("PARSE ERROR  EXCEPTION IN DATETIMESERVICE");
-            e.printStackTrace();
-        }
-        return date;
+        /*DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        return dateFormat.format(new Date(location.getTime()));*/
+        return new Date(location.getTime());
     }
 }

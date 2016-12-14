@@ -4,7 +4,7 @@ package ru.markova.darya.geolocation.dto;
  * Created by darya on 13.12.16.
  */
 
-public class ResponseEntity {
+public class ResponseEntityDTO {
 
     private String status;
 
@@ -16,5 +16,5 @@ public class ResponseEntity {
         this.status = status;
     }
 
-    public ResponseEntity(){}
+    public ResponseEntityDTO(){}
 }

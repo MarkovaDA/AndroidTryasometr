@@ -1,6 +1,10 @@
 package ru.markova.darya.geolocation.dto;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 
 /**
  * Created by darya on 07.12.16.
@@ -8,28 +12,20 @@ import java.util.Date;
 
 public class AccelerationDTO {
 
-    private Long id;
     private float accelX;
     private float accelY;
     private float accelZ;
     private String deviceImei;
-    private Date dataTime;
+    private String dataTime;
+    private DateFormat dateFormat;
+    public AccelerationDTO(AccelerationTableEntity entity) {
 
-    public AccelerationDTO(Long id, float accelX, float accelY, float accelZ, String deviceImei, Date dataTime) {
-        this.id = id;
-        this.accelX = accelX;
-        this.accelY = accelY;
-        this.accelZ = accelZ;
-        this.deviceImei = deviceImei;
-        this.dataTime = dataTime;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+        this.accelX = entity.getAccelX();
+        this.accelY = entity.getAccelY();
+        this.accelZ = entity.getAccelZ();
+        this.deviceImei = entity.getDeviceImei();
+        dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        this.dataTime = dateFormat.format(entity.getDataTime());
     }
 
     public float getAccelX() {
@@ -64,11 +60,11 @@ public class AccelerationDTO {
         this.deviceImei = deviceImei;
     }
 
-    public Date getDataTime() {
+    public String getDataTime() {
         return dataTime;
     }
 
-    public void setDataTime(Date dataTime) {
+    public void setDataTime(String dataTime) {
         this.dataTime = dataTime;
     }
 }

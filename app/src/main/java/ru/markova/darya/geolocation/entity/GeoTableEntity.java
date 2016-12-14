@@ -25,7 +25,7 @@ public class GeoTableEntity {
 
     @NotNull
     @Index
-    private Date dataTime;
+    private Date dataTime; //временно ппоробую хранить строковое представление
 
     /** Used to resolve relations */
     @Generated(hash = 2040040024)

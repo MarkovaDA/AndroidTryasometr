@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.List;
 
 import ru.markova.darya.geolocation.config.GreenDaoBuilder;
+import ru.markova.darya.geolocation.dto.AccelerationDTO;
 import ru.markova.darya.geolocation.dto.LocationDTO;
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 import ru.markova.darya.geolocation.entity.AccelerationTableEntityDao;
@@ -30,13 +31,13 @@ public class LocalStorageService {
         this.context = context;
         daoSession = GreenDaoBuilder.getDaoSession(context);
     }
-
+    //GeoTableEntity возвращал ранее
     public List<GeoTableEntity> getSavedLocations(Date date){
         Query query= daoSession.queryBuilder(GeoTableEntity.class).
                 where(GeoTableEntityDao.Properties.DataTime.lt(date)).build();
         return query.list();
     }
-
+    //возвращал раньше AccelerationTableEntity
     public List<AccelerationTableEntity> getSavedAccelerations(Date date){
         Query query = daoSession.queryBuilder(AccelerationTableEntity.class).
                 where(AccelerationTableEntityDao.Properties.DataTime.lt(date)).build();

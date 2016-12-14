@@ -8,24 +8,18 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
-import org.greenrobot.greendao.database.Database;
-import org.greenrobot.greendao.query.Query;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import okhttp3.Interceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import ru.markova.darya.geolocation.MainActivity;
 import ru.markova.darya.geolocation.config.RetrofitBuilder;
 import ru.markova.darya.geolocation.dto.LocationDTO;
-import ru.markova.darya.geolocation.dto.ResponseEntity;
-import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
-import ru.markova.darya.geolocation.entity.DaoMaster;
-import ru.markova.darya.geolocation.entity.DaoSession;
+import ru.markova.darya.geolocation.dto.ResponseEntityDTO;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
 
 public class SendLocationToServerService extends Service{
@@ -77,21 +71,27 @@ public class SendLocationToServerService extends Service{
             checkAndSendHandler.removeCallbacksAndMessages(null);
             final Date currentDate = DateTimeService.getCurrentDateAndTime();
             final List<GeoTableEntity> locations = localStorageService.getSavedLocations(currentDate);
-            Call<ResponseEntity> call = dataSendService.sendLocations(locations);
+
+            final List<LocationDTO> locationDTOs = new ArrayList<>();
+
+            for(int i=0; i<locations.size();i++){
+                locationDTOs.add(new LocationDTO(locations.get(i)));
+            }
+            Call<ResponseEntityDTO> call = dataSendService.sendLocations(locationDTOs);
 
             //отправка координат на сервер
-            call.enqueue(new Callback<ResponseEntity>() {
+            call.enqueue(new Callback<ResponseEntityDTO>() {
                 @Override
-                public void onResponse(Call<ResponseEntity> call, Response<ResponseEntity> response) {
+                public void onResponse(Call<ResponseEntityDTO> call, Response<ResponseEntityDTO> response) {
                     //успешная отправка
                     Log.d(LOG_TAG, "SENDING LOCATIONS SUCCESS...");
-                    localStorageService.deleteLocations(currentDate);
+                    //localStorageService.deleteLocations(currentDate);
                     intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "locations success:" + DateTimeService.getCurrentDateAndTime());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
                 @Override
-                public void onFailure(Call<ResponseEntity> call, Throwable t) {
+                public void onFailure(Call<ResponseEntityDTO> call, Throwable t) {
                     //неуспешная отправка
                     Log.d(LOG_TAG, "SENDING LOCATIONS FAILURE...");
                     intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "locations fail:" + DateTimeService.getCurrentDateAndTime());

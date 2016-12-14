@@ -1,19 +1,25 @@
 package ru.markova.darya.geolocation.dto;
 
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import ru.markova.darya.geolocation.entity.GeoTableEntity;
 
 public class LocationDTO {
     private Double lon;
     private Double lat;
     private String deviceImei;
-    private Date dataTime;
+    private String dataTime;
+    private DateFormat dateFormat;
 
-    public LocationDTO(Double lon, Double lat, String deviceImei, Date dataTime) {
-        this.lon = lon;
-        this.lat = lat;
-        this.deviceImei = deviceImei;
-        this.dataTime = dataTime;
+    public LocationDTO(GeoTableEntity geo) {
+        this.lon = geo.getLon();
+        this.lat = geo.getLat();
+        this.deviceImei = geo.getDeviceImei();
+        dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        this.dataTime = dateFormat.format(geo.getDataTime());
     }
 
     public Double getLon() {
@@ -40,11 +46,11 @@ public class LocationDTO {
         this.deviceImei = deviceImei;
     }
 
-    public Date getDataTime() {
+    public String getDataTime() {
         return dataTime;
     }
 
-    public void setDataTime(Date dataTime) {
+    public void setDataTime(String dataTime) {
         this.dataTime = dataTime;
     }
 
