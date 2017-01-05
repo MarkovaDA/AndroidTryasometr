@@ -44,9 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private LocationManager locationManager;
     private Location lastLocation;
 
-
     final String LOG_TAG = "MainActivity";
-
     private Intent serverLocationIntent;
     private Intent serverAccelerIntent;
 
@@ -88,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
                         entity.setDeviceImei(deviceIMEI);
                         entity.setAccelX(accel[0]); entity.setAccelY(accel[1]);entity.setAccelZ(accel[2]);
                         entity.setDataTime(DateTimeService.getCurrentDateAndTime());
+                        //локально сохраняем очередную порцию ускорений
                         localStorageService.insertAcceleration(entity);
                         System.out.println(info);
                     }
@@ -114,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         localStorageService = new LocalStorageService(MainActivity.this);
-        //вешаем слушателя на два типа провайдеров
+        //вешаем слушателя на два типа провайдеров определения местоположения - продумать параметры
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 1, locationListener);
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 1, locationListener);
         sensorManager.registerListener(shakeEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
@@ -220,9 +219,4 @@ public class MainActivity extends AppCompatActivity {
         locationManager.removeUpdates(locationListener);
         shakeEventListener.setOnShakeListener(null);
     }
-
-    //отобразить информацию о перегрузочном ускорении
-    public void showAccelerationInfo(View view){
-    }
-
 }

@@ -85,8 +85,9 @@ public class SendLocationToServerService extends Service{
                 public void onResponse(Call<ResponseEntityDTO> call, Response<ResponseEntityDTO> response) {
                     //успешная отправка
                     Log.d(LOG_TAG, "SENDING LOCATIONS SUCCESS...");
-                    //localStorageService.deleteLocations(currentDate);
-                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "locations success:" + DateTimeService.getCurrentDateAndTime());
+                    //удаляем уже отправленные данные
+                    localStorageService.deleteLocations(currentDate);
+                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "locations success:" + DateTimeService.getCurrentDateAndTimeString());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
@@ -94,7 +95,7 @@ public class SendLocationToServerService extends Service{
                 public void onFailure(Call<ResponseEntityDTO> call, Throwable t) {
                     //неуспешная отправка
                     Log.d(LOG_TAG, "SENDING LOCATIONS FAILURE...");
-                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "locations fail:" + DateTimeService.getCurrentDateAndTime());
+                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "locations fail:" + DateTimeService.getCurrentDateAndTimeString());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }

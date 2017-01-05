@@ -6,11 +6,9 @@ import retrofit2.http.Body;
 import retrofit2.http.POST;
 import ru.markova.darya.geolocation.dto.AccelerationDTO;
 import ru.markova.darya.geolocation.dto.LocationDTO;
-import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
-import ru.markova.darya.geolocation.entity.GeoTableEntity;
 import ru.markova.darya.geolocation.dto.ResponseEntityDTO;
 
-
+/*отправка данных на сервер*/
 public interface RetrofitDataSendService {
 
     @POST("save_location/")

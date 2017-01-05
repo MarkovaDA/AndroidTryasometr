@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import ru.markova.darya.geolocation.service.RetrofitDataSendService;
 
 /**
- * Created by darya on 19.11.16.
+ * конфигуратор HTTP-соединения
  */
 public class RetrofitBuilder {
 
@@ -17,14 +17,15 @@ public class RetrofitBuilder {
     private static Gson gson = new GsonBuilder()
             .setLenient()
             .create();
-    //192.168.43.7
-    private static final String URL = "http://192.168.15.226:8080/tryasometr/";
+    //192.168.43.7 192.168.15.226
+    private static final String URL = "http://192.168.43.7:8080/tryasometr/";
 
     private static Retrofit retrofit;
 
     private static RetrofitDataSendService dataSendService;
 
     public static RetrofitDataSendService getDataSendService(){
+
         if (dataSendService == null){
             gson = new GsonBuilder().create();
             retrofit = new Retrofit.Builder()

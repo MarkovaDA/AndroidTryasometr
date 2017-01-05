@@ -7,7 +7,7 @@ import org.greenrobot.greendao.annotation.NotNull;
 import java.util.Date;
 import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.DaoException;
-//создать индексы по дате и времени
+//сведение о локации
 @Entity(active=true, nameInDb = "geo_table", createInDb = true)
 public class GeoTableEntity {
     @Id

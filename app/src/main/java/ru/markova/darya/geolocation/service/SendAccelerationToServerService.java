@@ -87,9 +87,9 @@ public class SendAccelerationToServerService extends Service{
                 public void onResponse(Call<ResponseEntityDTO> call, Response<ResponseEntityDTO> response) {
                     //успешная отправка
                     Log.d(LOG_TAG, "SENDING ACCELERATIONS SUCCESS...");
-                    //удаляем
-                    //localStorageService.deleteAccelerations(currentDate);
-                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "success accelerations:" + DateTimeService.getCurrentDateAndTime());
+                    //удаляем отправленные данные из локальной базы данных
+                    localStorageService.deleteAccelerations(currentDate);
+                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "accelerations success:" + DateTimeService.getCurrentDateAndTimeString());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
@@ -97,7 +97,7 @@ public class SendAccelerationToServerService extends Service{
                 public void onFailure(Call<ResponseEntityDTO> call, Throwable t) {
                     //неуспешная отправка
                     Log.d(LOG_TAG, "SENDING ACCELERATIONS FAILURE....");
-                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "fail accelerations:" + DateTimeService.getCurrentDateAndTime());
+                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "accelerations fail:" + DateTimeService.getCurrentDateAndTimeString());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
