@@ -21,11 +21,13 @@ import ru.markova.darya.geolocation.config.RetrofitBuilder;
 import ru.markova.darya.geolocation.dto.LocationDTO;
 import ru.markova.darya.geolocation.dto.ResponseEntityDTO;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
-
+/**
+ * cервис для отправки данных о местоположении на сервер
+ */
 public class SendLocationToServerService extends Service{
 
     final String LOG_TAG = "SendDataFromDBService";
-    private  final static  Long CHECK_INTERVAL = 5 * 1000L; //интервал запуска
+    private  final static  Long CHECK_INTERVAL = 10 * 1000L; //интервал отправки данных о местоположении
 
     private Handler checkAndSendHandler = null;
     //сервис для отправки запросов на сервер
@@ -55,6 +57,7 @@ public class SendLocationToServerService extends Service{
             checkAndSendHandler.removeCallbacksAndMessages(null);
             checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
         }
+        localStorageService.destroy();
     }
 
 

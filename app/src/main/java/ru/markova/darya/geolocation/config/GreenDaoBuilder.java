@@ -10,18 +10,21 @@ import ru.markova.darya.geolocation.entity.DaoSession;
  */
 public class GreenDaoBuilder {
 
-    private static DaoSession daoSession;
     private static DaoMaster.DevOpenHelper helper;
 
     public static DaoSession getDaoSession(Context context){
-        helper = new DaoMaster.DevOpenHelper(context, "tryasometr_local_storage");
-        Database db = helper.getWritableDb();
-        daoSession = new DaoMaster(db).newSession();
+        //так как потоков несколько,
+        // то каждому потоку предоставляется свой конекшн
+        if (helper == null) {
+            helper = new DaoMaster.DevOpenHelper(context, "tryasometr_storage");
+        }
+        Database database = helper.getWritableDb();
+        DaoSession daoSession = new DaoMaster(database).newSession();
         return daoSession;
     }
-    public static void closeSession(){
-        if (helper != null){
-            helper.close();
-        }
+
+    public static void closeSession(DaoSession session){
+        session.clear();
+        //database.close();
     }
 }

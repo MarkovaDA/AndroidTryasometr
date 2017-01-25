@@ -23,10 +23,13 @@ import ru.markova.darya.geolocation.dto.LocationDTO;
 import ru.markova.darya.geolocation.dto.ResponseEntityDTO;
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 
+/*
+ * сервис для отправки ускорений на сервер
+ */
 public class SendAccelerationToServerService extends Service{
 
     final String LOG_TAG = "SendDataFromDBService";
-    private  final static  Long CHECK_INTERVAL = 6 * 1000L; //интервал запуска
+    private  final static  Long CHECK_INTERVAL = 5 * 1000L; //интервал отправки ускорений на сервер
 
     private Handler checkAndSendHandler = null;
 
@@ -57,6 +60,7 @@ public class SendAccelerationToServerService extends Service{
             checkAndSendHandler.removeCallbacksAndMessages(null);
             checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
         }
+        localStorageService.destroy();
     }
 
 

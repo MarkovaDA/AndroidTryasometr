@@ -6,9 +6,6 @@ import java.util.Date;
 
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 
-/**
- * Created by darya on 07.12.16.
- */
 
 public class AccelerationDTO {
 

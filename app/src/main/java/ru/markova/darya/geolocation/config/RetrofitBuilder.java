@@ -18,6 +18,7 @@ public class RetrofitBuilder {
             .setLenient()
             .create();
     //192.168.43.7 192.168.15.226
+    //заменить локальный адрес на адрес сервера
     private static final String URL = "http://192.168.43.7:8080/tryasometr/";
 
     private static Retrofit retrofit;

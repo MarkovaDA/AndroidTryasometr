@@ -1,7 +1,9 @@
 package ru.markova.darya.geolocation.dto;
 
 
-//для чтения ответа от сервера
+/**
+ * для чтение ответа от сервера
+ */
 public class ResponseEntityDTO {
 
     private String status;

@@ -7,7 +7,7 @@ import org.greenrobot.greendao.annotation.NotNull;
 import java.util.Date;
 import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.DaoException;
-//сведение о локации
+
 @Entity(active=true, nameInDb = "geo_table", createInDb = true)
 public class GeoTableEntity {
     @Id
@@ -25,7 +25,7 @@ public class GeoTableEntity {
 
     @NotNull
     @Index
-    private Date dataTime; //временно ппоробую хранить строковое представление
+    private Date dataTime;
 
     /** Used to resolve relations */
     @Generated(hash = 2040040024)

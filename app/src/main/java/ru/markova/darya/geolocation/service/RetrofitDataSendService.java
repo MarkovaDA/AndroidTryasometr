@@ -8,7 +8,9 @@ import ru.markova.darya.geolocation.dto.AccelerationDTO;
 import ru.markova.darya.geolocation.dto.LocationDTO;
 import ru.markova.darya.geolocation.dto.ResponseEntityDTO;
 
-/*отправка данных на сервер*/
+/**
+ * API для отправки данных на сервер
+ */
 public interface RetrofitDataSendService {
 
     @POST("save_location/")

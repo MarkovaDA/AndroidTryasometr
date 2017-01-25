@@ -9,7 +9,7 @@ import org.greenrobot.greendao.annotation.NotNull;
 import java.util.Date;
 import org.greenrobot.greendao.DaoException;
 
-//сведение об ускорении
+
 @Entity(active=true, nameInDb = "acceleration_table", createInDb = true)
 public class AccelerationTableEntity {
     @Id

@@ -27,13 +27,13 @@ public class LocalStorageService {
         this.context = context;
         daoSession = GreenDaoBuilder.getDaoSession(context);
     }
-    //извлечь список сохраненных локаций
+    //извлечь список локально сохраненных локаций
     public List<GeoTableEntity> getSavedLocations(Date date){
         Query query= daoSession.queryBuilder(GeoTableEntity.class).
                 where(GeoTableEntityDao.Properties.DataTime.lt(date)).build();
         return query.list();
     }
-    //извлечь список сохраненных ускорений
+    //извлечь список локально сохраненных ускорений
     public List<AccelerationTableEntity> getSavedAccelerations(Date date){
         Query query = daoSession.queryBuilder(AccelerationTableEntity.class).
                 where(AccelerationTableEntityDao.Properties.DataTime.lt(date)).build();
@@ -72,7 +72,7 @@ public class LocalStorageService {
     }
 
     public void destroy(){
-        GreenDaoBuilder.closeSession();
+        GreenDaoBuilder.closeSession(daoSession);
     }
 
 }

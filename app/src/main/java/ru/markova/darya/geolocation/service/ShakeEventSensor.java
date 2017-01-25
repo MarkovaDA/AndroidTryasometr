@@ -5,11 +5,14 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 
+/**
+ * регистратор события тряски
+ */
 public class ShakeEventSensor implements SensorEventListener{
-    private  float[] accellrations;//массив,где запоминаются ускорения
+    private  float[] accellrations;
     private OnShakeListener mShakeListener;
     private long lastTime, currentTime;
-    private long TIME_INTERVAL = 5000;
+    private long TIME_INTERVAL = 5000; //изменения ускорений фикисируются каждый 5 сек
 
     public ShakeEventSensor(){
         accellrations = new float[3];
@@ -30,9 +33,7 @@ public class ShakeEventSensor implements SensorEventListener{
         accellrations[0] = sensorEvent.values[0];
         accellrations[1] = sensorEvent.values[1];
         accellrations[2] = sensorEvent.values[2];
-
         currentTime = System.currentTimeMillis();
-
         if (mShakeListener != null && (currentTime - lastTime) > TIME_INTERVAL) {
             lastTime = currentTime;
             mShakeListener.onShake();
@@ -43,7 +44,6 @@ public class ShakeEventSensor implements SensorEventListener{
     public void onAccuracyChanged(Sensor sensor, int i) {
 
     }
-
     //установка прослушивателя
     public void setOnShakeListener(OnShakeListener listener) {
         mShakeListener = listener;

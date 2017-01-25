@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
                         entity.setDeviceImei(deviceIMEI);
                         entity.setAccelX(accel[0]); entity.setAccelY(accel[1]);entity.setAccelZ(accel[2]);
                         entity.setDataTime(DateTimeService.getCurrentDateAndTime());
-                        //локально сохраняем очередную порцию ускорений
+                        //локально сохраняем показание ускорений
                         localStorageService.insertAcceleration(entity);
                         System.out.println(info);
                     }

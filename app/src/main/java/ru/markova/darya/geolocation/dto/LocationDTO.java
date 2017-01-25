@@ -3,7 +3,6 @@ package ru.markova.darya.geolocation.dto;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
 
