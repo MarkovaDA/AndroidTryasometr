@@ -14,6 +14,8 @@ public class AccelerationDTO {
     private float accelZ;
     private String deviceImei;
     private String dataTime;
+    private double lat;
+    private double lon;
     private DateFormat dateFormat;
     public AccelerationDTO(AccelerationTableEntity entity) {
 
@@ -21,8 +23,26 @@ public class AccelerationDTO {
         this.accelY = entity.getAccelY();
         this.accelZ = entity.getAccelZ();
         this.deviceImei = entity.getDeviceImei();
+        this.lat = entity.getLat();
+        this.lon = entity.getLon();
         dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         this.dataTime = dateFormat.format(entity.getDataTime());
+    }
+
+    public double getLat() {
+        return lat;
+    }
+
+    public void setLat(double lat) {
+        this.lat = lat;
+    }
+
+    public double getLon() {
+        return lon;
+    }
+
+    public void setLon(double lon) {
+        this.lon = lon;
     }
 
     public float getAccelX() {

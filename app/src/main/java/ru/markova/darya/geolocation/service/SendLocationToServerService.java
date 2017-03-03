@@ -22,7 +22,7 @@ import ru.markova.darya.geolocation.dto.LocationDTO;
 import ru.markova.darya.geolocation.dto.ResponseEntityDTO;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
 
-public class SendLocationToServerService extends Service{
+/*public class SendLocationToServerService extends Service{
 
     final String LOG_TAG = "SendDataFromDBService";
     private  final static  Long CHECK_INTERVAL = 10 * 1000L; //интервал отправки данных о местоположении
@@ -103,4 +103,4 @@ public class SendLocationToServerService extends Service{
             });
         }
     };
-}
+}*/

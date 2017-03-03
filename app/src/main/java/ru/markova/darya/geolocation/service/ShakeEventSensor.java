@@ -5,6 +5,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 
+import ru.markova.darya.geolocation.MainActivity;
+
 /**
  * регистратор события тряски
  */

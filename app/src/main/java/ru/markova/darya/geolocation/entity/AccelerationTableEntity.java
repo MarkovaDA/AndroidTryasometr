@@ -32,6 +32,25 @@ public class AccelerationTableEntity {
     @Index
     private Date dataTime;
 
+    private double lat;
+    private double lon;
+
+    public double getLat() {
+        return lat;
+    }
+
+    public void setLat(double lat) {
+        this.lat = lat;
+    }
+
+    public double getLon() {
+        return lon;
+    }
+
+    public void setLon(double lon) {
+        this.lon = lon;
+    }
+
     /** Used to resolve relations */
     @Generated(hash = 2040040024)
     private transient DaoSession daoSession;
@@ -40,15 +59,17 @@ public class AccelerationTableEntity {
     @Generated(hash = 1881560845)
     private transient AccelerationTableEntityDao myDao;
 
-    @Generated(hash = 1790984198)
-    public AccelerationTableEntity(Long id, float accelX, float accelY,
-            float accelZ, @NotNull String deviceImei, @NotNull Date dataTime) {
+    @Generated(hash = 49439470)
+    public AccelerationTableEntity(Long id, float accelX, float accelY, float accelZ,
+            @NotNull String deviceImei, @NotNull Date dataTime, double lat, double lon) {
         this.id = id;
         this.accelX = accelX;
         this.accelY = accelY;
         this.accelZ = accelZ;
         this.deviceImei = deviceImei;
         this.dataTime = dataTime;
+        this.lat = lat;
+        this.lon = lon;
     }
 
     @Generated(hash = 1218035569)

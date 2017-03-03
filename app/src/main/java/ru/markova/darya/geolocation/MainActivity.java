@@ -29,9 +29,8 @@ import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
 import ru.markova.darya.geolocation.service.DateTimeService;
 import ru.markova.darya.geolocation.service.LocalStorageService;
-import ru.markova.darya.geolocation.service.RetrofitDataSendService;
 import ru.markova.darya.geolocation.service.SendAccelerationToServerService;
-import ru.markova.darya.geolocation.service.SendLocationToServerService;
+//import ru.markova.darya.geolocation.service.SendLocationToServerService;
 import ru.markova.darya.geolocation.service.ShakeEventSensor;
 
 public class MainActivity extends AppCompatActivity {
@@ -50,10 +49,12 @@ public class MainActivity extends AppCompatActivity {
     String   deviceIMEI;
     BroadcastReceiver broadcastReceiver;
     private LocationManager locationManager;
+
+    //менеджер для обработки мгновенного смены координат
     private Location lastLocation;
 
     final String LOG_TAG = "MainActivity";
-    private Intent serverLocationIntent;
+    //private Intent serverLocationIntent;
     private Intent serverAccelerIntent;
 
     private SensorManager sensorManager;
@@ -74,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
         txtStatusSending = (TextView)findViewById(R.id.txtStatusSending);
         tvUseFullInfoStatus = (TextView)findViewById(R.id.tvUseFulInfoStatus);
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-
         broadcastReceiver =  new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 String status = intent.getExtras().get(MainActivity.STATUS_SENDING_PARAM).toString();
@@ -94,6 +94,10 @@ public class MainActivity extends AppCompatActivity {
                         AccelerationTableEntity entity = new AccelerationTableEntity();
                         entity.setDeviceImei(deviceIMEI);
                         entity.setAccelX(accel[0]); entity.setAccelY(accel[1]);entity.setAccelZ(accel[2]);
+                        if (lastLocation !=null) {
+                            entity.setLat(lastLocation.getLatitude());
+                            entity.setLon(lastLocation.getLongitude());
+                        }
                         entity.setDataTime(DateTimeService.getCurrentDateAndTime());
                         //локально сохраняем показание ускорений
                         localStorageService.insertAcceleration(entity);
@@ -107,9 +111,9 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
         // регистрируем (включаем) BroadcastReceiver
         registerReceiver(broadcastReceiver, intentFilter);
-        serverLocationIntent = new Intent(this, SendLocationToServerService.class);
+        //serverLocationIntent = new Intent(this, SendLocationToServerService.class);
         serverAccelerIntent = new Intent(this, SendAccelerationToServerService.class);
-        startService(serverLocationIntent);//запускаем службу отправки координат
+        //startService(serverLocationIntent);//запускаем службу отправки координат
         startService(serverAccelerIntent); //запускаем службу отправки ускорений
     }
 
@@ -222,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         unregisterReceiver(broadcastReceiver);
-        stopService(serverLocationIntent);
+        //stopService(serverLocationIntent);
         stopService(serverAccelerIntent);
         //отключаем слушателя
         locationManager.removeUpdates(locationListener);
