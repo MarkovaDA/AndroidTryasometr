@@ -3,9 +3,9 @@ package ru.markova.darya.geolocation.dto;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
 
+//объект для передачи данных о локации
 public class LocationDTO {
     private Double lon;
     private Double lat;

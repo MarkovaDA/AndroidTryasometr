@@ -2,7 +2,7 @@ package ru.markova.darya.geolocation.dto;
 
 
 /**
- * для чтение ответа от сервера
+ * формат чтения ответа от сервера
  */
 public class ResponseEntityDTO {
 

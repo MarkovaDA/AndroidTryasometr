@@ -19,10 +19,17 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import ru.markova.darya.geolocation.config.RetrofitBuilder;
+import ru.markova.darya.geolocation.dto.InfoDTO;
+import ru.markova.darya.geolocation.dto.ResponseEntityDTO;
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
 import ru.markova.darya.geolocation.service.DateTimeService;
 import ru.markova.darya.geolocation.service.LocalStorageService;
+import ru.markova.darya.geolocation.service.RetrofitDataSendService;
 import ru.markova.darya.geolocation.service.SendAccelerationToServerService;
 import ru.markova.darya.geolocation.service.SendLocationToServerService;
 import ru.markova.darya.geolocation.service.ShakeEventSensor;
@@ -38,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     TextView tvStatusNet;
     TextView tvLocationNet;
     TextView txtStatusSending;
+    TextView tvUseFullInfoStatus;
 
     String   deviceIMEI;
     BroadcastReceiver broadcastReceiver;
@@ -52,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private ShakeEventSensor shakeEventListener;
     private LocalStorageService localStorageService;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         tvStatusNet =   (TextView)  findViewById(R.id.tvStatusNet);
         tvLocationNet = (TextView)findViewById(R.id.tvLocationNet);
         txtStatusSending = (TextView)findViewById(R.id.txtStatusSending);
-
+        tvUseFullInfoStatus = (TextView)findViewById(R.id.tvUseFulInfoStatus);
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 
         broadcastReceiver =  new BroadcastReceiver() {
@@ -114,8 +123,8 @@ public class MainActivity extends AppCompatActivity {
         }
         localStorageService = new LocalStorageService(MainActivity.this);
         //вешаем слушателя на два типа провайдеров определения местоположения - продумать параметры
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 1, locationListener);
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 1, locationListener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
         sensorManager.registerListener(shakeEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
                 SensorManager.SENSOR_DELAY_NORMAL);
         checkEnabled();
@@ -126,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
-
+    //прослушиватель события смены местоположения
     private LocationListener locationListener = new LocationListener() {
 
         @Override
@@ -218,5 +227,40 @@ public class MainActivity extends AppCompatActivity {
         //отключаем слушателя
         locationManager.removeUpdates(locationListener);
         shakeEventListener.setOnShakeListener(null);
+    }
+    //запись информации о яме
+    public void onPitClick(View view){
+        //сохранять в локальную базу данных
+        InfoDTO info = new InfoDTO(DateTimeService.getCurrentDateAndTimeString(), "pit");
+        Call<ResponseEntityDTO> call = RetrofitBuilder.getDataSendService().sendUseFulInfo(info);
+        call.enqueue(new Callback<ResponseEntityDTO>() {
+            @Override
+            public void onResponse(Call<ResponseEntityDTO> call, Response<ResponseEntityDTO> response) {
+                tvUseFullInfoStatus.setText("pit was saved");
+            }
+
+            @Override
+            public void onFailure(Call<ResponseEntityDTO> call, Throwable t) {
+                tvUseFullInfoStatus.setText("error saving pit");
+            }
+        });
+    }
+
+    //запись информации о неровности
+    public void onRoughClick(View view){
+        //тоже самое
+        InfoDTO info = new InfoDTO(DateTimeService.getCurrentDateAndTimeString(), "rough");
+        Call<ResponseEntityDTO> call = RetrofitBuilder.getDataSendService().sendUseFulInfo(info);
+        call.enqueue(new Callback<ResponseEntityDTO>() {
+            @Override
+            public void onResponse(Call<ResponseEntityDTO> call, Response<ResponseEntityDTO> response) {
+                tvUseFullInfoStatus.setText("rough was saved");
+            }
+
+            @Override
+            public void onFailure(Call<ResponseEntityDTO> call, Throwable t) {
+                tvUseFullInfoStatus.setText("error saving rough");
+            }
+        });
     }
 }

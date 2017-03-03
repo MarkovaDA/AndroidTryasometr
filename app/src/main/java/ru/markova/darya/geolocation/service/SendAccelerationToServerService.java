@@ -29,7 +29,8 @@ import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 public class SendAccelerationToServerService extends Service{
 
     final String LOG_TAG = "SendDataFromDBService";
-    private  final static  Long CHECK_INTERVAL = 5 * 1000L; //интервал отправки ускорений на сервер
+    private  final static  Long CHECK_INTERVAL =  1000L; //интервал отправки ускорений на сервер
+
 
     private Handler checkAndSendHandler = null;
 

@@ -13,8 +13,6 @@ public class GreenDaoBuilder {
     private static DaoMaster.DevOpenHelper helper;
 
     public static DaoSession getDaoSession(Context context){
-        //так как потоков несколько,
-        // то каждому потоку предоставляется свой конекшн
         if (helper == null) {
             helper = new DaoMaster.DevOpenHelper(context, "tryasometr_storage");
         }

@@ -21,9 +21,7 @@ import ru.markova.darya.geolocation.config.RetrofitBuilder;
 import ru.markova.darya.geolocation.dto.LocationDTO;
 import ru.markova.darya.geolocation.dto.ResponseEntityDTO;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
-/**
- * cервис для отправки данных о местоположении на сервер
- */
+
 public class SendLocationToServerService extends Service{
 
     final String LOG_TAG = "SendDataFromDBService";
@@ -74,7 +72,7 @@ public class SendLocationToServerService extends Service{
             checkAndSendHandler.removeCallbacksAndMessages(null);
             final Date currentDate = DateTimeService.getCurrentDateAndTime();
             final List<GeoTableEntity> locations = localStorageService.getSavedLocations(currentDate);
-
+            //извлекли из базы данных
             final List<LocationDTO> locationDTOs = new ArrayList<>();
 
             for(int i=0; i<locations.size();i++){
