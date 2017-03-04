@@ -3,6 +3,7 @@ package ru.markova.darya.geolocation.service;
 
 import android.content.Context;
 
+
 import org.greenrobot.greendao.query.Query;
 
 import java.util.Date;
@@ -14,6 +15,8 @@ import ru.markova.darya.geolocation.entity.AccelerationTableEntityDao;
 import ru.markova.darya.geolocation.entity.DaoSession;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
 import ru.markova.darya.geolocation.entity.GeoTableEntityDao;
+import ru.markova.darya.geolocation.entity.InfoTableEntity;
+import ru.markova.darya.geolocation.entity.InfoTableEntityDao;
 
 /**
  * методы для работы с базой данных
@@ -30,21 +33,31 @@ public class LocalStorageService {
     //извлечь список локально сохраненных локаций
     public List<GeoTableEntity> getSavedLocations(Date date){
         Query query= daoSession.queryBuilder(GeoTableEntity.class).
-                where(GeoTableEntityDao.Properties.DataTime.lt(date)).build();
+                where(GeoTableEntityDao.Properties.DataTime.le(date)).build();
         return query.list();
     }
     //извлечь список локально сохраненных ускорений
     public List<AccelerationTableEntity> getSavedAccelerations(Date date){
         Query query = daoSession.queryBuilder(AccelerationTableEntity.class).
-                where(AccelerationTableEntityDao.Properties.DataTime.lt(date)).build();
+                where(AccelerationTableEntityDao.Properties.DataTime.le(date)).build();
         return query.list();
     }
-
+    //извлечь список локально сохраненных объектов информации
+    public List<InfoTableEntity> getSavedInfoObjects(Date date){
+        Query query = daoSession.queryBuilder(InfoTableEntity.class).
+                where(InfoTableEntityDao.Properties.DataTime.le(date)).build();
+        return query.list();
+    }
     //сохранение локейшена
     public void insertLocation(GeoTableEntity entity){
         //daoSession.getGeoTableEntityDao().insert(entity);
         daoSession.insert(entity);
     }
+    //сохранение информации
+    public void insertInfo(InfoTableEntity entity){
+        daoSession.insert(entity);
+    }
+
     //сохранение ускорения
     public void insertAcceleration(AccelerationTableEntity entity){
         //daoSession.getAccelerationTableEntityDao().insert(entity);
@@ -61,13 +74,19 @@ public class LocalStorageService {
     //удаление ускорений
     public void deleteAccelerations(Date date){
         daoSession.queryBuilder(AccelerationTableEntity.class).
-                where(AccelerationTableEntityDao.Properties.DataTime.lt(date))
+                where(AccelerationTableEntityDao.Properties.DataTime.le(date))
+                .buildDelete().executeDeleteWithoutDetachingEntities();
+    }
+    //удаление объектов информации
+    public void deleteInfoObjects(Date date){
+        daoSession.queryBuilder(InfoTableEntity.class).
+                where(InfoTableEntityDao.Properties.DataTime.le(date))
                 .buildDelete().executeDeleteWithoutDetachingEntities();
     }
     //удаление локайшенов
     public void deleteLocations(Date date){
         daoSession.queryBuilder(GeoTableEntity.class).
-                where(GeoTableEntityDao.Properties.DataTime.lt(date))
+                where(GeoTableEntityDao.Properties.DataTime.le(date))
                 .buildDelete().executeDeleteWithoutDetachingEntities();
     }
 

@@ -1,14 +1,25 @@
 package ru.markova.darya.geolocation.dto;
 
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
+import ru.markova.darya.geolocation.entity.InfoTableEntity;
 
 public class InfoDTO {
     private String dataTime;
     private String type;
+    private DateFormat dateFormat;
 
     public InfoDTO(String dataTime, String type) {
         this.dataTime = dataTime;
         this.type = type;
+    }
+
+    public InfoDTO(InfoTableEntity entity) {
+        this.type = entity.getType();
+        dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        this.dataTime = dateFormat.format(entity.getDataTime());
     }
 
     public String getDataTime() {

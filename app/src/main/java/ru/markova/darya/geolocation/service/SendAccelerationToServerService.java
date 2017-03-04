@@ -19,9 +19,11 @@ import retrofit2.Response;
 import ru.markova.darya.geolocation.MainActivity;
 import ru.markova.darya.geolocation.config.RetrofitBuilder;
 import ru.markova.darya.geolocation.dto.AccelerationDTO;
+import ru.markova.darya.geolocation.dto.InfoDTO;
 import ru.markova.darya.geolocation.dto.LocationDTO;
 import ru.markova.darya.geolocation.dto.ResponseEntityDTO;
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
+import ru.markova.darya.geolocation.entity.InfoTableEntity;
 
 /*
  * сервис для отправки ускорений на сервер
@@ -78,13 +80,12 @@ public class SendAccelerationToServerService extends Service{
 
             checkAndSendHandler.removeCallbacksAndMessages(null);
             final Date currentDate = DateTimeService.getCurrentDateAndTime();
-            final List<AccelerationTableEntity> accelerations = localStorageService.getSavedAccelerations(currentDate);
+            final List<AccelerationTableEntity> accelerations =
+                    localStorageService.getSavedAccelerations(currentDate);
             final List<AccelerationDTO> accelerationDTOs = new ArrayList<>();
-
             for(int i=0; i<accelerations.size();i++){
                 accelerationDTOs.add(new AccelerationDTO(accelerations.get(i)));
             }
-
             Call<ResponseEntityDTO> call = dataSendService.sendAccelerations(accelerationDTOs);
             //отправка координат на сервер
             call.enqueue(new Callback<ResponseEntityDTO>() {
@@ -102,11 +103,37 @@ public class SendAccelerationToServerService extends Service{
                 public void onFailure(Call<ResponseEntityDTO> call, Throwable t) {
                     //неуспешная отправка
                     Log.d(LOG_TAG, "SENDING ACCELERATIONS FAILURE....");
+                    intent.setAction("ACCEL_STATUS");
                     intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "accelerations fail:" + DateTimeService.getCurrentDateAndTimeString());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
             });
+            final List<InfoTableEntity> infoObjects =
+                    localStorageService.getSavedInfoObjects(currentDate);
+            final List<InfoDTO> infoDTOs = new ArrayList<>();
+            for(int i=0; i < infoObjects.size();i++){
+                infoDTOs.add(new InfoDTO(infoObjects.get(i)));
+            }
+            //отправка служебной информации
+            call = RetrofitBuilder.getDataSendService().sendInfoObjects(infoDTOs);
+            call.enqueue(new Callback<ResponseEntityDTO>() {
+                @Override
+                public void onResponse(Call<ResponseEntityDTO> call, Response<ResponseEntityDTO> response) {
+                    Log.d(LOG_TAG, "INFO SUCCESS...");
+                    localStorageService.deleteInfoObjects(currentDate);
+                    intent.setAction("INFO_STATUS");
+                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "error saving");
+                }
+
+                @Override
+                public void onFailure(Call<ResponseEntityDTO> call, Throwable t) {
+                    Log.d(LOG_TAG, "INFO FAILURE....");
+                    intent.setAction("INFO_STATUS");
+                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "success saving");
+                }
+            });
+
         }
     };
 }

@@ -27,6 +27,7 @@ import ru.markova.darya.geolocation.dto.InfoDTO;
 import ru.markova.darya.geolocation.dto.ResponseEntityDTO;
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
+import ru.markova.darya.geolocation.entity.InfoTableEntity;
 import ru.markova.darya.geolocation.service.DateTimeService;
 import ru.markova.darya.geolocation.service.LocalStorageService;
 import ru.markova.darya.geolocation.service.SendAccelerationToServerService;
@@ -75,15 +76,21 @@ public class MainActivity extends AppCompatActivity {
         txtStatusSending = (TextView)findViewById(R.id.txtStatusSending);
         tvUseFullInfoStatus = (TextView)findViewById(R.id.tvUseFulInfoStatus);
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        //обратная связь с сервером отсылки ускорений
         broadcastReceiver =  new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 String status = intent.getExtras().get(MainActivity.STATUS_SENDING_PARAM).toString();
-                txtStatusSending.setText(status);
+                if (intent.getAction().equals("ACCEL_STATUS")){
+                    txtStatusSending.setText(status);
+                }
+                else if (intent.getAction().equals("INFO_STATUS")){
+                    tvUseFullInfoStatus.setText(status);
+                }
             }
         };
         sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         shakeEventListener = new ShakeEventSensor();
-
+        //регистратор события тряски устройства
         shakeEventListener.setOnShakeListener(
                 new ShakeEventSensor.OnShakeListener() {
 
@@ -234,37 +241,16 @@ public class MainActivity extends AppCompatActivity {
     }
     //запись информации о яме
     public void onPitClick(View view){
-        //сохранять в локальную базу данных
-        InfoDTO info = new InfoDTO(DateTimeService.getCurrentDateAndTimeString(), "pit");
-        Call<ResponseEntityDTO> call = RetrofitBuilder.getDataSendService().sendUseFulInfo(info);
-        call.enqueue(new Callback<ResponseEntityDTO>() {
-            @Override
-            public void onResponse(Call<ResponseEntityDTO> call, Response<ResponseEntityDTO> response) {
-                tvUseFullInfoStatus.setText("pit was saved");
-            }
-
-            @Override
-            public void onFailure(Call<ResponseEntityDTO> call, Throwable t) {
-                tvUseFullInfoStatus.setText("error saving pit");
-            }
-        });
+        InfoTableEntity infoEntity = new InfoTableEntity();
+        infoEntity.setDataTime(DateTimeService.getCurrentDateAndTime());
+        infoEntity.setType("pit");
+        localStorageService.insertInfo(infoEntity);
     }
-
     //запись информации о неровности
     public void onRoughClick(View view){
-        //тоже самое
-        InfoDTO info = new InfoDTO(DateTimeService.getCurrentDateAndTimeString(), "rough");
-        Call<ResponseEntityDTO> call = RetrofitBuilder.getDataSendService().sendUseFulInfo(info);
-        call.enqueue(new Callback<ResponseEntityDTO>() {
-            @Override
-            public void onResponse(Call<ResponseEntityDTO> call, Response<ResponseEntityDTO> response) {
-                tvUseFullInfoStatus.setText("rough was saved");
-            }
-
-            @Override
-            public void onFailure(Call<ResponseEntityDTO> call, Throwable t) {
-                tvUseFullInfoStatus.setText("error saving rough");
-            }
-        });
+        InfoTableEntity infoEntity = new InfoTableEntity();
+        infoEntity.setDataTime(DateTimeService.getCurrentDateAndTime());
+        infoEntity.setType("rough");
+        localStorageService.insertInfo(infoEntity);
     }
 }
