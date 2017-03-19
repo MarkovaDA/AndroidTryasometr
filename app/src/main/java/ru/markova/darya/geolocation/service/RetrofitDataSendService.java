@@ -7,6 +7,7 @@ import retrofit2.http.POST;
 import ru.markova.darya.geolocation.dto.AccelerationDTO;
 import ru.markova.darya.geolocation.dto.InfoDTO;
 import ru.markova.darya.geolocation.dto.LocationDTO;
+import ru.markova.darya.geolocation.dto.PitDTO;
 import ru.markova.darya.geolocation.dto.ResponseEntityDTO;
 
 /**
@@ -14,15 +15,12 @@ import ru.markova.darya.geolocation.dto.ResponseEntityDTO;
  */
 public interface RetrofitDataSendService {
 
-    /*@POST("save_location/")
-    Call<ResponseEntityDTO> sendLocations(@Body List<LocationDTO> locations);*/
-
     @POST("save_acceleration/")
     Call<ResponseEntityDTO> sendAccelerations(@Body List<AccelerationDTO> accelerations);
 
-    /*@POST("save_useful/")
-    Call<ResponseEntityDTO> sendUseFulInfo(@Body InfoDTO info);*/
-
     @POST("save_info_objects/")
     Call<ResponseEntityDTO> sendInfoObjects(@Body List<InfoDTO> info);
+
+    @POST("mark_pit_interval/")
+    Call<ResponseEntityDTO> markPitInterval(@Body List<PitDTO> pit);
 }

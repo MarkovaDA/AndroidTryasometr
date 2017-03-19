@@ -35,6 +35,8 @@ public class AccelerationTableEntity {
     private double lat;
     private double lon;
 
+    public double[] accels;//набор всех ускорений
+
     public double getLat() {
         return lat;
     }
@@ -70,6 +72,7 @@ public class AccelerationTableEntity {
         this.dataTime = dataTime;
         this.lat = lat;
         this.lon = lon;
+        this.accels = new double[]{accelX, accelY, accelZ};
     }
 
     @Generated(hash = 1218035569)

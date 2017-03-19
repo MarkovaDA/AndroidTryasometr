@@ -80,12 +80,7 @@ public class MainActivity extends AppCompatActivity {
         broadcastReceiver =  new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 String status = intent.getExtras().get(MainActivity.STATUS_SENDING_PARAM).toString();
-                if (intent.getAction().equals("ACCEL_STATUS")){
-                    txtStatusSending.setText(status);
-                }
-                else if (intent.getAction().equals("INFO_STATUS")){
-                    tvUseFullInfoStatus.setText(status);
-                }
+                txtStatusSending.setText(status);
             }
         };
         sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);

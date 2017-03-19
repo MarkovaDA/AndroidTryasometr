@@ -17,9 +17,8 @@ public class RetrofitBuilder {
     private static Gson gson = new GsonBuilder()
             .setLenient()
             .create();
-    //192.168.43.7 192.168.15.226 192.168.0.102
-    //заменить локальный адрес на адрес сервера
-    private static final String URL = "http://192.168.43.7:8080/tryasometr_data_transfer/";
+    //"http://192.168.15.226/tryasometr_data_transfer/"
+    private static final String URL = "http://vps1.vistar.su:8080/TryasometrDataTransfer/";
 
     private static Retrofit retrofit;
 

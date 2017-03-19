@@ -14,7 +14,7 @@ public class ShakeEventSensor implements SensorEventListener{
     private  float[] accellrations;
     private OnShakeListener mShakeListener;
     private long lastTime, currentTime;
-    private long TIME_INTERVAL = 3000; //изменения ускорений фикисируются каждый 3 сек
+    private long TIME_INTERVAL = 50; //изменения ускорений фикисируются каждый 50 мс
 
     public ShakeEventSensor(){
         accellrations = new float[3];

@@ -25,7 +25,7 @@ public class AccelerationDTO {
         this.deviceImei = entity.getDeviceImei();
         this.lat = entity.getLat();
         this.lon = entity.getLon();
-        dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         this.dataTime = dateFormat.format(entity.getDataTime());
     }
 

@@ -44,13 +44,13 @@ public class LocalStorageService {
     }
     //извлечь список локально сохраненных объектов информации
     public List<InfoTableEntity> getSavedInfoObjects(Date date){
-        Query query = daoSession.queryBuilder(InfoTableEntity.class).
-                where(InfoTableEntityDao.Properties.DataTime.le(date)).build();
+        Query query = daoSession.queryBuilder(InfoTableEntity.class)
+                .where(InfoTableEntityDao.Properties.DataTime.le(date))
+                .build();
         return query.list();
     }
     //сохранение локейшена
     public void insertLocation(GeoTableEntity entity){
-        //daoSession.getGeoTableEntityDao().insert(entity);
         daoSession.insert(entity);
     }
     //сохранение информации
@@ -79,8 +79,8 @@ public class LocalStorageService {
     }
     //удаление объектов информации
     public void deleteInfoObjects(Date date){
-        daoSession.queryBuilder(InfoTableEntity.class).
-                where(InfoTableEntityDao.Properties.DataTime.le(date))
+        daoSession.queryBuilder(InfoTableEntity.class)
+                .where(InfoTableEntityDao.Properties.DataTime.le(date))
                 .buildDelete().executeDeleteWithoutDetachingEntities();
     }
     //удаление локайшенов
