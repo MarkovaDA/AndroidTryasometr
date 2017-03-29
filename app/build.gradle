@@ -1,10 +1,9 @@
-apply plugin: 'org.greenrobot.greendao'
 apply plugin: 'com.android.application'
-
+apply plugin: 'org.greenrobot.greendao'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "24.0.2"
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         applicationId "ru.markova.darya.geolocation"
@@ -37,4 +36,5 @@ dependencies {
     compile 'org.greenrobot:greendao:3.2.0'
     compile 'org.greenrobot:greendao-generator:3.2.0'
     compile 'com.google.android.gms:play-services-maps:10.0.1'
+    compile 'com.github.PhilJay:MPAndroidChart:v3.0.2'
 }

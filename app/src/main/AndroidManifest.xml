@@ -20,18 +20,12 @@
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".service.SendLocationToServerService"
-            android:enabled="true"
-            android:exported="true">
-        </service>
 
-        <service android:name=".service.SendAccelerationToServerService"
+        <service android:name=".service.AnalyzingPitService"
             android:enabled="true"
             android:exported="true">
         </service>
@@ -44,5 +38,4 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAmf9G7Y7RY5193GdvjJa02nBFYw0l_u4c"/>
     </application>
-
 </manifest>

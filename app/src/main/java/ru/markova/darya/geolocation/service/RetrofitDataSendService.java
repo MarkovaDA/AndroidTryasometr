@@ -22,5 +22,5 @@ public interface RetrofitDataSendService {
     Call<ResponseEntityDTO> sendInfoObjects(@Body List<InfoDTO> info);
 
     @POST("mark_pit_interval/")
-    Call<ResponseEntityDTO> markPitInterval(@Body List<PitDTO> pit);
+    Call<ResponseEntityDTO> markPitInterval(@Body PitDTO pit);
 }

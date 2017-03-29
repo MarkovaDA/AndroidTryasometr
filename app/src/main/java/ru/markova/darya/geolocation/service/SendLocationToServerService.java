@@ -104,3 +104,60 @@ import ru.markova.darya.geolocation.entity.GeoTableEntity;
         }
     };
 }*/
+
+        /* продолжение метода отправки ускорений
+        final List<AccelerationDTO> accelerationDTOs = new ArrayList<>();
+        for(int i=0; i<accelerations.size();i++){
+        accelerationDTOs.add(new AccelerationDTO(accelerations.get(i)));
+        }
+        Call<ResponseEntityDTO> call = dataSendService.sendAccelerations(accelerationDTOs);
+        //отправка ускорений на сервер осуществляться не будет
+        call.enqueue(new Callback<ResponseEntityDTO>() {
+        @Override
+        public void onResponse(Call<ResponseEntityDTO> call, Response<ResponseEntityDTO> response) {
+        //успешная отправка
+        Log.d(LOG_TAG, "SENDING ACCELERATIONS SUCCESS...");
+        //удаляем отправленные данные из локальной базы данных
+        localStorageService.deleteAccelerations(currentDate);
+        intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "accelerations success:" + DateTimeService.getCurrentDateAndTimeString());
+        sendBroadcast(intent);
+        checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
+        }
+        @Override
+        public void onFailure(Call<ResponseEntityDTO> call, Throwable t) {
+        //неуспешная отправка
+        Log.d(LOG_TAG, "SENDING ACCELERATIONS FAILURE....");
+        intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "accelerations fail:" + DateTimeService.getCurrentDateAndTimeString());
+        sendBroadcast(intent);
+        checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
+        }
+        });
+            //метод, который выполняет отправку служебной информации
+    private void sendUsefulObjects(){
+        final Date currentDate = DateTimeService.getCurrentDateAndTime();
+        final List<InfoTableEntity> infoObjects =
+                localStorageService.getSavedInfoObjects(currentDate);
+        final List<InfoDTO> infoDTOs = new ArrayList<>();
+        for(int i=0; i < infoObjects.size();i++){
+            infoDTOs.add(new InfoDTO(infoObjects.get(i)));
+        }
+        //отправка служебной информации
+        Call<ResponseEntityDTO> call = RetrofitBuilder.getDataSendService().sendInfoObjects(infoDTOs);
+        call.enqueue(new Callback<ResponseEntityDTO>() {
+            @Override
+            public void onResponse(Call<ResponseEntityDTO> call, Response<ResponseEntityDTO> response) {
+                Log.d(LOG_TAG, "INFO SUCCESS...");
+                localStorageService.deleteInfoObjects(currentDate);
+                intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "success saving");
+                sendBroadcast(intent);
+            }
+
+            @Override
+            public void onFailure(Call<ResponseEntityDTO> call, Throwable t) {
+                Log.d(LOG_TAG, "INFO FAILURE....");
+                intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "error saving");
+                sendBroadcast(intent);
+            }
+        });
+    }
+        */

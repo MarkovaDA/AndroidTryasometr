@@ -11,6 +11,17 @@ public class PitDTO {
     private Double lat2;
     private Double value;//оценка
 
+    public PitDTO(Double lon1, Double lat1, Double lon2, Double lat2, Double value) {
+        this.lon1 = lon1;
+        this.lat1 = lat1;
+        this.lon2 = lon2;
+        this.lat2 = lat2;
+        this.value = value;
+    }
+
+    public PitDTO() {
+    }
+
     public Double getLon1() {
         return lon1;
     }

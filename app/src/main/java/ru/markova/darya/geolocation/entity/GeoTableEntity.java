@@ -131,4 +131,5 @@ public class GeoTableEntity {
         this.daoSession = daoSession;
         myDao = daoSession != null ? daoSession.getGeoTableEntityDao() : null;
     }
+
 }

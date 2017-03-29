@@ -36,10 +36,12 @@ public class LocalStorageService {
                 where(GeoTableEntityDao.Properties.DataTime.le(date)).build();
         return query.list();
     }
-    //извлечь список локально сохраненных ускорений
+    //извлечь список локально сохраненных ускорений - ограничение 50 отсчетов
     public List<AccelerationTableEntity> getSavedAccelerations(Date date){
         Query query = daoSession.queryBuilder(AccelerationTableEntity.class).
-                where(AccelerationTableEntityDao.Properties.DataTime.le(date)).build();
+                where(AccelerationTableEntityDao.Properties.DataTime.le(date))
+                .limit(10) //потом исправить!!!
+                .build();
         return query.list();
     }
     //извлечь список локально сохраненных объектов информации
@@ -75,6 +77,7 @@ public class LocalStorageService {
     public void deleteAccelerations(Date date){
         daoSession.queryBuilder(AccelerationTableEntity.class).
                 where(AccelerationTableEntityDao.Properties.DataTime.le(date))
+                .limit(20)
                 .buildDelete().executeDeleteWithoutDetachingEntities();
     }
     //удаление объектов информации

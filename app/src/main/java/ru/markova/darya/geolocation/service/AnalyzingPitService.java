@@ -12,25 +12,30 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import ru.markova.darya.geolocation.MainActivity;
+import ru.markova.darya.geolocation.anylize.PitDetectror;
 import ru.markova.darya.geolocation.config.RetrofitBuilder;
 import ru.markova.darya.geolocation.dto.AccelerationDTO;
 import ru.markova.darya.geolocation.dto.InfoDTO;
+import ru.markova.darya.geolocation.dto.PitDTO;
 import ru.markova.darya.geolocation.dto.ResponseEntityDTO;
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 import ru.markova.darya.geolocation.entity.InfoTableEntity;
 
 /*
  * сервис для отправки ускорений на сервер
+ *  в последующем будет просто сервисом для интервального анализа и отправки точек на сервер, только если яма
+ *  http://stackoverflow.com/questions/35202541/this-version-of-android-studio-is-incompatible-with-the-gradle-version-used-try
  */
-public class SendAccelerationToServerService extends Service{
+public class AnalyzingPitService extends Service{
 
     final String LOG_TAG = "SendDataFromDBService";
-    private  final static  Long CHECK_INTERVAL =  5000L; //интервал отправки ускорений на сервер
+    private  final static  Long CHECK_INTERVAL =  1000L; //интервал отправки ускорений на сервер
 
     private Handler checkAndSendHandler = null;
 
@@ -38,7 +43,6 @@ public class SendAccelerationToServerService extends Service{
     private  RetrofitDataSendService dataSendService;
     //сервис для работы с локальной базой данных
     private LocalStorageService localStorageService;
-
     private Intent intent;
 
     @Nullable
@@ -70,68 +74,39 @@ public class SendAccelerationToServerService extends Service{
         checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
         return super.onStartCommand(intent, flags, startId);
     }
-    //метод, который выполняет отправку служебной информации
-    private void sendUsefulObjects(){
-        final Date currentDate = DateTimeService.getCurrentDateAndTime();
-        final List<InfoTableEntity> infoObjects =
-                localStorageService.getSavedInfoObjects(currentDate);
-        final List<InfoDTO> infoDTOs = new ArrayList<>();
-        for(int i=0; i < infoObjects.size();i++){
-            infoDTOs.add(new InfoDTO(infoObjects.get(i)));
-        }
-        //отправка служебной информации
-        Call<ResponseEntityDTO> call = RetrofitBuilder.getDataSendService().sendInfoObjects(infoDTOs);
-        call.enqueue(new Callback<ResponseEntityDTO>() {
-            @Override
-            public void onResponse(Call<ResponseEntityDTO> call, Response<ResponseEntityDTO> response) {
-                Log.d(LOG_TAG, "INFO SUCCESS...");
-                localStorageService.deleteInfoObjects(currentDate);
-                intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "success saving");
-                sendBroadcast(intent);
-            }
 
-            @Override
-            public void onFailure(Call<ResponseEntityDTO> call, Throwable t) {
-                Log.d(LOG_TAG, "INFO FAILURE....");
-                intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "error saving");
-                sendBroadcast(intent);
-            }
-        });
-    }
 
     private Runnable dataSendRunnable = new Runnable() {
         @Override
         public void run() {
             checkAndSendHandler.removeCallbacksAndMessages(null);
-            sendUsefulObjects();//отправка служебной информации
             final Date currentDate = DateTimeService.getCurrentDateAndTime();
             final List<AccelerationTableEntity> accelerations =
                     localStorageService.getSavedAccelerations(currentDate);
-
-            //!!!ЗДЕСЬ СРАЗУ ФУРЬЕ-ОБРАБОТКА ДАННЫХ, на сервер отправляем координаты отрезка,
-            //где предположительно была яма
-            final List<AccelerationDTO> accelerationDTOs = new ArrayList<>();
-            for(int i=0; i<accelerations.size();i++){
-                accelerationDTOs.add(new AccelerationDTO(accelerations.get(i)));
-            }
-            Call<ResponseEntityDTO> call = dataSendService.sendAccelerations(accelerationDTOs);
-            //отправка координат на сервер
+            PitDTO currentSurface = PitDetectror.getDetector(accelerations).isTherePit();
+            intent.putExtra(MainActivity.AVERAGE_INTERVAL_VALUE, currentSurface.getValue());
+            sendBroadcast(intent);
+            //отправляем, если распознали, что в этом месте яма
+            Call<ResponseEntityDTO> call = dataSendService.markPitInterval(currentSurface);
+            //отправка ускорений на сервер осуществляться не будет
             call.enqueue(new Callback<ResponseEntityDTO>() {
                 @Override
                 public void onResponse(Call<ResponseEntityDTO> call, Response<ResponseEntityDTO> response) {
                     //успешная отправка
-                    Log.d(LOG_TAG, "SENDING ACCELERATIONS SUCCESS...");
-                    //удаляем отправленные данные из локальной базы данных
+                    Log.d(LOG_TAG, "SENDING PIT SUCCESS...");
+                    //удаляем обработанные ускорения
                     localStorageService.deleteAccelerations(currentDate);
-                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "accelerations success:" + DateTimeService.getCurrentDateAndTimeString());
+                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "pit success:" + DateTimeService.getCurrentDateAndTimeString());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
                 @Override
                 public void onFailure(Call<ResponseEntityDTO> call, Throwable t) {
+                    //врменно удаляем и старые ускорения
+                    localStorageService.deleteAccelerations(currentDate);
                     //неуспешная отправка
-                    Log.d(LOG_TAG, "SENDING ACCELERATIONS FAILURE....");
-                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "accelerations fail:" + DateTimeService.getCurrentDateAndTimeString());
+                    Log.d(LOG_TAG, "SENDING PIT FAILURE....");
+                    intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "pit fail:" + DateTimeService.getCurrentDateAndTimeString());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }

@@ -19,18 +19,20 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import ru.markova.darya.geolocation.config.RetrofitBuilder;
-import ru.markova.darya.geolocation.dto.InfoDTO;
-import ru.markova.darya.geolocation.dto.ResponseEntityDTO;
+import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.utils.ColorTemplate;
+
+import java.util.ArrayList;
+import java.util.Random;
+
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 import ru.markova.darya.geolocation.entity.GeoTableEntity;
-import ru.markova.darya.geolocation.entity.InfoTableEntity;
 import ru.markova.darya.geolocation.service.DateTimeService;
 import ru.markova.darya.geolocation.service.LocalStorageService;
-import ru.markova.darya.geolocation.service.SendAccelerationToServerService;
+import ru.markova.darya.geolocation.service.AnalyzingPitService;
 //import ru.markova.darya.geolocation.service.SendLocationToServerService;
 import ru.markova.darya.geolocation.service.ShakeEventSensor;
 
@@ -38,14 +40,11 @@ public class MainActivity extends AppCompatActivity {
 
     public final static String BROADCAST_ACTION = "ru.markova.darya.geolocation";
     public final static String STATUS_SENDING_PARAM = "sending_status";
+    public final static String AVERAGE_INTERVAL_VALUE = "avg_value";
     TextView tvEnabledGPS;
-    TextView tvStatusGPS;
-    TextView tvLocationGPS;
     TextView tvEnabledNet;
-    TextView tvStatusNet;
-    TextView tvLocationNet;
     TextView txtStatusSending;
-    TextView tvUseFullInfoStatus;
+    TextView txtValue;
 
     String   deviceIMEI;
     BroadcastReceiver broadcastReceiver;
@@ -62,25 +61,31 @@ public class MainActivity extends AppCompatActivity {
     private ShakeEventSensor shakeEventListener;
     private LocalStorageService localStorageService;
 
-
+    private BarChart barChart;
+    private ArrayList<BarEntry> barEntries;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         tvEnabledGPS = (TextView) findViewById(R.id.tvEnabledGPS);
-        tvStatusGPS =   (TextView)  findViewById(R.id.tvStatusGPS);
-        tvLocationGPS = (TextView)findViewById(R.id.tvLocationGPS);
         tvEnabledNet =  (TextView) findViewById(R.id.tvEnabledNet);
-        tvStatusNet =   (TextView)  findViewById(R.id.tvStatusNet);
-        tvLocationNet = (TextView)findViewById(R.id.tvLocationNet);
         txtStatusSending = (TextView)findViewById(R.id.txtStatusSending);
-        tvUseFullInfoStatus = (TextView)findViewById(R.id.tvUseFulInfoStatus);
+        txtValue = (TextView)findViewById(R.id.txtValue);
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         //обратная связь с сервером отсылки ускорений
         broadcastReceiver =  new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
-                String status = intent.getExtras().get(MainActivity.STATUS_SENDING_PARAM).toString();
-                txtStatusSending.setText(status);
+
+                Object status = intent.getExtras().get(MainActivity.STATUS_SENDING_PARAM);
+                if (status !=null)
+                    txtStatusSending.setText(status.toString());
+                //среднее значение оценки
+                Double avgValue =  intent.getDoubleExtra(MainActivity.AVERAGE_INTERVAL_VALUE, 5);
+                //сначала форматирвоание
+                if (avgValue !=null) {
+                    String value = String.format("%.2f", avgValue);
+                    txtValue.setText(value);
+                }
             }
         };
         sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
@@ -114,7 +119,27 @@ public class MainActivity extends AppCompatActivity {
         // регистрируем (включаем) BroadcastReceiver
         registerReceiver(broadcastReceiver, intentFilter);
         //serverLocationIntent = new Intent(this, SendLocationToServerService.class);
-        serverAccelerIntent = new Intent(this, SendAccelerationToServerService.class);
+        serverAccelerIntent = new Intent(this, AnalyzingPitService.class);
+        Random random = new Random();
+        //инициализация гистограммы
+        barChart = (BarChart)findViewById(R.id.bargraph);
+        barEntries = new ArrayList<>();
+        for(int i=1; i <=30; i++){
+            barEntries.add(new BarEntry(i,  random.nextInt(50)));
+        }
+        barEntries.add(new BarEntry(1, 44f));
+        BarDataSet barDataSet = new BarDataSet(barEntries, "garmonics");
+        barDataSet.setColors(ColorTemplate.COLORFUL_COLORS);
+        BarData barData = new BarData(barDataSet);
+        barData.setDrawValues(false);//подписи к столбцам убираем
+        barChart.setData(barData);
+        barChart.setDrawBorders(false);
+        barChart.getAxisRight().setEnabled(false);
+        barChart.getXAxis().setEnabled(false);
+        barChart.getAxisLeft().setDrawGridLines(false);
+        barChart.getAxisRight().setDrawGridLines(false);
+        barChart.getXAxis().setDrawGridLines(false);
+        barChart.setDrawGridBackground(false);
         //startService(serverLocationIntent);//запускаем службу отправки координат
         startService(serverAccelerIntent); //запускаем службу отправки ускорений
     }
@@ -147,13 +172,12 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onLocationChanged(Location location) {
             lastLocation = location; //запоминаем данные о местоположении
-            showLocation(location);
-            GeoTableEntity entity = new GeoTableEntity();
+            /*GeoTableEntity entity = new GeoTableEntity();
             entity.setLat(location.getLatitude());
             entity.setLon(location.getLongitude());
             entity.setDataTime(DateTimeService.getDateAndTime(location));
             entity.setDeviceImei(deviceIMEI);
-            localStorageService.insertLocation(entity);
+            localStorageService.insertLocation(entity);*/
         }
 
         @Override
@@ -170,29 +194,18 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println("onProviderEnabled: приложение не имеет доступа к службе геолокации");
                 return;
             }
-            showLocation(locationManager.getLastKnownLocation(provider));
         }
 
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
-            if (provider.equals(LocationManager.GPS_PROVIDER)) {
+           /*if (provider.equals(LocationManager.GPS_PROVIDER)) {
                 tvStatusGPS.setText("Status: " + String.valueOf(status));
             } else if (provider.equals(LocationManager.NETWORK_PROVIDER)) {
                 tvStatusNet.setText("Status: " + String.valueOf(status));
-            }
+            }*/
         }
     };
 
-    //отображение координат
-    private void showLocation(Location location) {
-        if (location == null)
-            return;
-        if (location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
-            tvLocationGPS.setText(formatLocation(location));
-        } else if (location.getProvider().equals(LocationManager.NETWORK_PROVIDER)) {
-            tvLocationNet.setText(formatLocation(location));
-        }
-    }
     private String formatLocation(Location location) {
         if (location == null)
             return "location is unknown";
@@ -234,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
         locationManager.removeUpdates(locationListener);
         shakeEventListener.setOnShakeListener(null);
     }
-    //запись информации о яме
+    /*//запись информации о яме
     public void onPitClick(View view){
         InfoTableEntity infoEntity = new InfoTableEntity();
         infoEntity.setDataTime(DateTimeService.getCurrentDateAndTime());
@@ -248,4 +261,5 @@ public class MainActivity extends AppCompatActivity {
         infoEntity.setType("rough");
         localStorageService.insertInfo(infoEntity);
     }
+    */
 }

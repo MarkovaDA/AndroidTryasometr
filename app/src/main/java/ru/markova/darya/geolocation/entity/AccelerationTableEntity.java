@@ -4,10 +4,12 @@ import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.Index;
+import org.greenrobot.greendao.annotation.Keep;
 import org.greenrobot.greendao.annotation.NotNull;
 
 import java.util.Date;
 import org.greenrobot.greendao.DaoException;
+import org.greenrobot.greendao.annotation.Transient;
 
 
 @Entity(active=true, nameInDb = "acceleration_table", createInDb = true)
@@ -35,24 +37,6 @@ public class AccelerationTableEntity {
     private double lat;
     private double lon;
 
-    public double[] accels;//набор всех ускорений
-
-    public double getLat() {
-        return lat;
-    }
-
-    public void setLat(double lat) {
-        this.lat = lat;
-    }
-
-    public double getLon() {
-        return lon;
-    }
-
-    public void setLon(double lon) {
-        this.lon = lon;
-    }
-
     /** Used to resolve relations */
     @Generated(hash = 2040040024)
     private transient DaoSession daoSession;
@@ -72,12 +56,28 @@ public class AccelerationTableEntity {
         this.dataTime = dataTime;
         this.lat = lat;
         this.lon = lon;
-        this.accels = new double[]{accelX, accelY, accelZ};
     }
 
     @Generated(hash = 1218035569)
     public AccelerationTableEntity() {
     }
+
+    public double getLat() {
+        return lat;
+    }
+
+    public void setLat(double lat) {
+        this.lat = lat;
+    }
+
+    public double getLon() {
+        return lon;
+    }
+
+    public void setLon(double lon) {
+        this.lon = lon;
+    }
+
 
     public float getAccelX() {
         return accelX;
@@ -169,4 +169,9 @@ public class AccelerationTableEntity {
         this.daoSession = daoSession;
         myDao = daoSession != null ? daoSession.getAccelerationTableEntityDao() : null;
     }
+
+    /**
+     * Convenient call for {@link org.greenrobot.greendao.AbstractDao#delete(Object)}.
+     * Entity must attached to an entity context.
+     */
 }

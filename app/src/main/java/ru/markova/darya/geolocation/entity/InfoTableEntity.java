@@ -106,4 +106,6 @@ public class InfoTableEntity {
         this.daoSession = daoSession;
         myDao = daoSession != null ? daoSession.getInfoTableEntityDao() : null;
     }
+
+
 }
