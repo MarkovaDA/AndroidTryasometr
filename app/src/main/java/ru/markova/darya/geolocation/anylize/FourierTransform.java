@@ -21,7 +21,7 @@ public class FourierTransform {
              arr[i][1] = times.get(i).getAccelY();
              arr[i][2] = times.get(i).getAccelZ();
         };
-        System.out.println("ИСХОДНЫЕ КОЭФФИЦИЕНТЫ РАЗЛОЖЕНИЯ");
+        //System.out.println("ИСХОДНЫЕ КОЭФФИЦИЕНТЫ РАЗЛОЖЕНИЯ");
         for (int k = 0; k < n; k++) {
             System.out.print(arr[k][axis] + " ");
             sumreal = 0.0;
@@ -38,21 +38,24 @@ public class FourierTransform {
         }
         return koeff;
     }
-
-    //квадраты коэффцициентов Фурье - гармоники спектра
-    public double getAvgOfAmplitudes(List<AccelerationTableEntity> times, int axis){
+    //получаем гармоники без первой ведущей
+    public double[] getGarmonics(List<AccelerationTableEntity> times, int axis){
         double[][] koeff = computeDFT(times,axis);
         int length = times.size();
+        double[] amplitudes = new double[length - 1];
+        for(int i=1; i < length; i++){
+            amplitudes[i-1] = koeff[i][0]*koeff[i][0] + koeff[i][1]*koeff[i][1];
+        }
+        return amplitudes;
+    }
+    //квадраты коэффцициентов Фурье - гармоники спектра
+    public double getAvgOfAmplitudes(List<AccelerationTableEntity> times, int axis){
         double avg = 0.0;
-        double[] amplitudes = new double[length];
-        System.out.println("РЕАЛЬНЫЕ КОЭФФИЦИЕНТЫ РАЗЛОЖЕНИЯ");
-        for(int i=0; i < length; i++){
-            System.out.print(koeff[i][0] + " ");
-            amplitudes[i] = koeff[i][0]*koeff[i][0] + koeff[i][1]*koeff[i][1];
-            if (i>0)//первую ведущую гармонику не берем
+        double[] amplitudes = getGarmonics(times, axis);
+        //System.out.println("РЕАЛЬНЫЕ КОЭФФИЦИЕНТЫ РАЗЛОЖЕНИЯ");
+        for(int i=0; i < amplitudes.length; i++){
             avg += amplitudes[i];
         }
-        return avg/(length - 1);
+        return avg/amplitudes.length;
     }
-
 }

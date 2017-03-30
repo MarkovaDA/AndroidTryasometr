@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     public final static String BROADCAST_ACTION = "ru.markova.darya.geolocation";
     public final static String STATUS_SENDING_PARAM = "sending_status";
     public final static String AVERAGE_INTERVAL_VALUE = "avg_value";
+    public final static String DRAW_GARMONICS_ACTION = "draw_garmonics";
     TextView tvEnabledGPS;
     TextView tvEnabledNet;
     TextView txtStatusSending;
@@ -81,10 +82,15 @@ public class MainActivity extends AppCompatActivity {
                     txtStatusSending.setText(status.toString());
                 //среднее значение оценки
                 Double avgValue =  intent.getDoubleExtra(MainActivity.AVERAGE_INTERVAL_VALUE, 5);
-                //сначала форматирвоание
                 if (avgValue !=null) {
                     String value = String.format("%.2f", avgValue);
                     txtValue.setText(value);
+                }
+                //гармоники спектра
+                double[] garmonics =  intent.getDoubleArrayExtra(MainActivity.DRAW_GARMONICS_ACTION);
+                if (garmonics.length > 0){
+                    //прорисовка гармоник
+                    drawGarmonics(garmonics);
                 }
             }
         };
@@ -246,6 +252,19 @@ public class MainActivity extends AppCompatActivity {
         //отключаем слушателя
         locationManager.removeUpdates(locationListener);
         shakeEventListener.setOnShakeListener(null);
+    }
+    //прорисовка гармоник
+    private void drawGarmonics(double[] amplitudes){
+        barEntries = new ArrayList<>();
+        for(int i=0; i < amplitudes.length; i++){
+            barEntries.add(new BarEntry(i+1, (float)amplitudes[i]));
+        }
+        BarDataSet barDataSet = new BarDataSet(barEntries, "garmonics");
+        barDataSet.setColors(ColorTemplate.COLORFUL_COLORS);
+        BarData barData = new BarData(barDataSet);
+        barData.setDrawValues(false);//подписи к столбцам убираем
+        barChart.setData(barData);
+        barChart.invalidate();
     }
     /*//запись информации о яме
     public void onPitClick(View view){

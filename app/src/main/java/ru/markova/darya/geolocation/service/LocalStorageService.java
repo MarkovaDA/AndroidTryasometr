@@ -37,10 +37,11 @@ public class LocalStorageService {
         return query.list();
     }
     //извлечь список локально сохраненных ускорений - ограничение 50 отсчетов
+    ///!!добавить группировку по deviceImei
     public List<AccelerationTableEntity> getSavedAccelerations(Date date){
-        Query query = daoSession.queryBuilder(AccelerationTableEntity.class).
-                where(AccelerationTableEntityDao.Properties.DataTime.le(date))
-                .limit(10) //потом исправить!!!
+        Query query = daoSession.queryBuilder(AccelerationTableEntity.class)
+                //where(AccelerationTableEntityDao.Properties.DataTime.le(date))
+                .limit(50)
                 .build();
         return query.list();
     }
@@ -75,9 +76,9 @@ public class LocalStorageService {
     }
     //удаление ускорений
     public void deleteAccelerations(Date date){
-        daoSession.queryBuilder(AccelerationTableEntity.class).
-                where(AccelerationTableEntityDao.Properties.DataTime.le(date))
-                .limit(20)
+        daoSession.queryBuilder(AccelerationTableEntity.class)
+                //where(AccelerationTableEntityDao.Properties.DataTime.le(date))
+                .limit(50)
                 .buildDelete().executeDeleteWithoutDetachingEntities();
     }
     //удаление объектов информации

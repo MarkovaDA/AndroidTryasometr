@@ -19,6 +19,7 @@ public class PitDetectror {
     private PitDetectror(){
         fourier = new FourierTransform();
     }
+
     private static class PitDetectorHolder{
         private final static PitDetectror instance =
                 new PitDetectror();
@@ -47,6 +48,18 @@ public class PitDetectror {
         avg = fourier.getAvgOfAmplitudes(timeCounts, baseAxis);
         return new PitDTO(startPoint.getLon(), startPoint.getLat(), endPoint.getLon(),endPoint.getLat(), avg);
     }
+    public static double[] getGarmonics(){
+        double[] initValues = new double[]
+                {
+                        timeCounts.get(0).getAccelX(),
+                        timeCounts.get(0).getAccelY(),
+                        timeCounts.get(0).getAccelZ()
+                };
+        //выбиреам ось,модуль ускорения которого наиболее приближен к нормальному (9.8)
+        int baseAxis = getBaseAxis(initValues);
+        return fourier.getGarmonics(timeCounts, baseAxis);
+    }
+    //определение оси телефона, коллинеарной вектору g
     private static int getBaseAxis(double[] values){
         double normal = 9.8;
         double delta = Math.abs(normal - values[0]);

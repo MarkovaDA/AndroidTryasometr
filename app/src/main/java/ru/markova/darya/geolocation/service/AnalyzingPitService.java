@@ -8,20 +8,14 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
-
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import ru.markova.darya.geolocation.MainActivity;
 import ru.markova.darya.geolocation.anylize.PitDetectror;
 import ru.markova.darya.geolocation.config.RetrofitBuilder;
-import ru.markova.darya.geolocation.dto.AccelerationDTO;
-import ru.markova.darya.geolocation.dto.InfoDTO;
 import ru.markova.darya.geolocation.dto.PitDTO;
 import ru.markova.darya.geolocation.dto.ResponseEntityDTO;
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
@@ -35,7 +29,7 @@ import ru.markova.darya.geolocation.entity.InfoTableEntity;
 public class AnalyzingPitService extends Service{
 
     final String LOG_TAG = "SendDataFromDBService";
-    private  final static  Long CHECK_INTERVAL =  1000L; //интервал отправки ускорений на сервер
+    private  final static  Long CHECK_INTERVAL =  2500L; //интервал отправки ускорений на сервер
 
     private Handler checkAndSendHandler = null;
 
@@ -83,12 +77,14 @@ public class AnalyzingPitService extends Service{
             final Date currentDate = DateTimeService.getCurrentDateAndTime();
             final List<AccelerationTableEntity> accelerations =
                     localStorageService.getSavedAccelerations(currentDate);
+            double[] amplitudes = PitDetectror.getDetector(accelerations).getGarmonics();
+            intent.putExtra(MainActivity.DRAW_GARMONICS_ACTION, amplitudes);
+            sendBroadcast(intent);
             PitDTO currentSurface = PitDetectror.getDetector(accelerations).isTherePit();
             intent.putExtra(MainActivity.AVERAGE_INTERVAL_VALUE, currentSurface.getValue());
             sendBroadcast(intent);
             //отправляем, если распознали, что в этом месте яма
             Call<ResponseEntityDTO> call = dataSendService.markPitInterval(currentSurface);
-            //отправка ускорений на сервер осуществляться не будет
             call.enqueue(new Callback<ResponseEntityDTO>() {
                 @Override
                 public void onResponse(Call<ResponseEntityDTO> call, Response<ResponseEntityDTO> response) {
@@ -111,7 +107,6 @@ public class AnalyzingPitService extends Service{
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
             });
-
         }
     };
 }
