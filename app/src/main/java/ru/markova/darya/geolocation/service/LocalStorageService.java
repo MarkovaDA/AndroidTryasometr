@@ -36,11 +36,10 @@ public class LocalStorageService {
                 where(GeoTableEntityDao.Properties.DataTime.le(date)).build();
         return query.list();
     }
-    //извлечь список локально сохраненных ускорений - ограничение 50 отсчетов
-    ///!!добавить группировку по deviceImei
+    //извлечение ускорений
     public List<AccelerationTableEntity> getSavedAccelerations(Date date){
         Query query = daoSession.queryBuilder(AccelerationTableEntity.class)
-                //where(AccelerationTableEntityDao.Properties.DataTime.le(date))
+                .where(AccelerationTableEntityDao.Properties.DataTime.le(date))
                 .limit(50)
                 .build();
         return query.list();
@@ -60,7 +59,6 @@ public class LocalStorageService {
     public void insertInfo(InfoTableEntity entity){
         daoSession.insert(entity);
     }
-
     //сохранение ускорения
     public void insertAcceleration(AccelerationTableEntity entity){
         //daoSession.getAccelerationTableEntityDao().insert(entity);
@@ -77,7 +75,7 @@ public class LocalStorageService {
     //удаление ускорений
     public void deleteAccelerations(Date date){
         daoSession.queryBuilder(AccelerationTableEntity.class)
-                //where(AccelerationTableEntityDao.Properties.DataTime.le(date))
+                 .where(AccelerationTableEntityDao.Properties.DataTime.le(date))
                 .limit(50)
                 .buildDelete().executeDeleteWithoutDetachingEntities();
     }
@@ -93,7 +91,6 @@ public class LocalStorageService {
                 where(GeoTableEntityDao.Properties.DataTime.le(date))
                 .buildDelete().executeDeleteWithoutDetachingEntities();
     }
-
     public void destroy(){
         GreenDaoBuilder.closeSession(daoSession);
     }

@@ -121,7 +121,7 @@
             >
             <TextView
                 android:text="0"
-                android:textSize="32sp"
+                android:textSize="24sp"
                 android:textColor="@color/colorPrimary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -138,6 +138,7 @@
             <com.github.mikephil.charting.charts.BarChart
                 android:layout_width="fill_parent"
                 android:layout_height = "200dp"
+                android:layout_gravity="center_horizontal"
                 android:id="@+id/bargraph"
                 tools:layout_editor_absoluteY="0dp"
                 tools:layout_editor_absoluteX="0dp">

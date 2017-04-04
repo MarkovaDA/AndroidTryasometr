@@ -22,15 +22,12 @@ import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 import ru.markova.darya.geolocation.entity.InfoTableEntity;
 
 /*
- * сервис для отправки ускорений на сервер
- *  в последующем будет просто сервисом для интервального анализа и отправки точек на сервер, только если яма
- *  http://stackoverflow.com/questions/35202541/this-version-of-android-studio-is-incompatible-with-the-gradle-version-used-try
+ * сервис детектирования ям
  */
 public class AnalyzingPitService extends Service{
 
-    final String LOG_TAG = "SendDataFromDBService";
-    private  final static  Long CHECK_INTERVAL =  2500L; //интервал отправки ускорений на сервер
-
+    private  final static  Long CHECK_INTERVAL = 2500L; //интервал отправки ускорений на сервер
+    private  final static int count = 50;
     private Handler checkAndSendHandler = null;
 
     //сервис для отправки запросов на сервер
@@ -76,7 +73,7 @@ public class AnalyzingPitService extends Service{
             checkAndSendHandler.removeCallbacksAndMessages(null);
             final Date currentDate = DateTimeService.getCurrentDateAndTime();
             final List<AccelerationTableEntity> accelerations =
-                    localStorageService.getSavedAccelerations(currentDate);
+                  localStorageService.getSavedAccelerations(currentDate);
             double[] amplitudes = PitDetectror.getDetector(accelerations).getGarmonics();
             intent.putExtra(MainActivity.DRAW_GARMONICS_ACTION, amplitudes);
             sendBroadcast(intent);
@@ -88,20 +85,17 @@ public class AnalyzingPitService extends Service{
             call.enqueue(new Callback<ResponseEntityDTO>() {
                 @Override
                 public void onResponse(Call<ResponseEntityDTO> call, Response<ResponseEntityDTO> response) {
-                    //успешная отправка
-                    Log.d(LOG_TAG, "SENDING PIT SUCCESS...");
                     //удаляем обработанные ускорения
                     localStorageService.deleteAccelerations(currentDate);
                     intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "pit success:" + DateTimeService.getCurrentDateAndTimeString());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);
                 }
+
                 @Override
                 public void onFailure(Call<ResponseEntityDTO> call, Throwable t) {
-                    //врменно удаляем и старые ускорения
+                    //временно удаляем старые ускорения
                     localStorageService.deleteAccelerations(currentDate);
-                    //неуспешная отправка
-                    Log.d(LOG_TAG, "SENDING PIT FAILURE....");
                     intent.putExtra(MainActivity.STATUS_SENDING_PARAM, "pit fail:" + DateTimeService.getCurrentDateAndTimeString());
                     sendBroadcast(intent);
                     checkAndSendHandler.postDelayed(dataSendRunnable, CHECK_INTERVAL);

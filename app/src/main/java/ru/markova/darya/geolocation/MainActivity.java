@@ -20,6 +20,9 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
@@ -29,11 +32,9 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
-import ru.markova.darya.geolocation.entity.GeoTableEntity;
 import ru.markova.darya.geolocation.service.DateTimeService;
 import ru.markova.darya.geolocation.service.LocalStorageService;
 import ru.markova.darya.geolocation.service.AnalyzingPitService;
-//import ru.markova.darya.geolocation.service.SendLocationToServerService;
 import ru.markova.darya.geolocation.service.ShakeEventSensor;
 
 public class MainActivity extends AppCompatActivity {
@@ -130,14 +131,15 @@ public class MainActivity extends AppCompatActivity {
         //инициализация гистограммы
         barChart = (BarChart)findViewById(R.id.bargraph);
         barEntries = new ArrayList<>();
-        for(int i=1; i <=30; i++){
+        for(int i=1; i <=50; i++){
             barEntries.add(new BarEntry(i,  random.nextInt(50)));
         }
         barEntries.add(new BarEntry(1, 44f));
         BarDataSet barDataSet = new BarDataSet(barEntries, "garmonics");
-        barDataSet.setColors(ColorTemplate.COLORFUL_COLORS);
+        barDataSet.setColors(ColorTemplate.JOYFUL_COLORS);
         BarData barData = new BarData(barDataSet);
         barData.setDrawValues(false);//подписи к столбцам убираем
+
         barChart.setData(barData);
         barChart.setDrawBorders(false);
         barChart.getAxisRight().setEnabled(false);
@@ -146,6 +148,17 @@ public class MainActivity extends AppCompatActivity {
         barChart.getAxisRight().setDrawGridLines(false);
         barChart.getXAxis().setDrawGridLines(false);
         barChart.setDrawGridBackground(false);
+        barChart.getLegend().setEnabled(false);//отключить легенду
+        barChart.getDescription().setEnabled(false);//отключить описание
+        //настройка ординаты
+        YAxis yAxis = barChart.getAxisLeft();
+        yAxis.setAxisMinimum(0);
+        yAxis.setAxisMaximum(70);
+
+        XAxis xAxis = barChart.getXAxis();
+        xAxis.setAxisMinimum(0);
+        xAxis.setAxisMaximum(50);
+        xAxis.setDrawAxisLine(false);
         //startService(serverLocationIntent);//запускаем службу отправки координат
         startService(serverAccelerIntent); //запускаем службу отправки ускорений
     }
@@ -260,25 +273,10 @@ public class MainActivity extends AppCompatActivity {
             barEntries.add(new BarEntry(i+1, (float)amplitudes[i]));
         }
         BarDataSet barDataSet = new BarDataSet(barEntries, "garmonics");
-        barDataSet.setColors(ColorTemplate.COLORFUL_COLORS);
+        barDataSet.setColors(ColorTemplate.PASTEL_COLORS);
         BarData barData = new BarData(barDataSet);
         barData.setDrawValues(false);//подписи к столбцам убираем
         barChart.setData(barData);
         barChart.invalidate();
     }
-    /*//запись информации о яме
-    public void onPitClick(View view){
-        InfoTableEntity infoEntity = new InfoTableEntity();
-        infoEntity.setDataTime(DateTimeService.getCurrentDateAndTime());
-        infoEntity.setType("pit");
-        localStorageService.insertInfo(infoEntity);
-    }
-    //запись информации о неровности
-    public void onRoughClick(View view){
-        InfoTableEntity infoEntity = new InfoTableEntity();
-        infoEntity.setDataTime(DateTimeService.getCurrentDateAndTime());
-        infoEntity.setType("rough");
-        localStorageService.insertInfo(infoEntity);
-    }
-    */
 }
