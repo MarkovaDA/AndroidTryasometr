@@ -11,6 +11,8 @@ import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
  */
 public class PitDetectror {
 
+    private static final int DEFAULT_FOURIET_SPECTRE_LENGTH = 100; // 1 секунда при интервале измерений в 10 мс
+
     //преобразователь Фурье
     private static FourierTransform fourier;
 
@@ -35,12 +37,18 @@ public class PitDetectror {
         int baseAxis = 0;//номер базовой оси
         AccelerationTableEntity startPoint, endPoint;
         double avg; //средний показатель ыеличины гармоник на отрезке
-        double[] initValues = new double[]
-                {
-                        timeCounts.get(0).getAccelX(),
-                        timeCounts.get(0).getAccelY(),
-                        timeCounts.get(0).getAccelZ()
-                };
+        double[] initValues;
+        if (timeCounts.isEmpty()) {
+            return new PitDTO(0d, 0d, 0d, 0d, 0d);
+        }
+        else {
+            initValues = new double[]
+                    {
+                            timeCounts.get(0).getAccelX(),
+                            timeCounts.get(0).getAccelY(),
+                            timeCounts.get(0).getAccelZ()
+                    };
+        }
         //выбиреам ось,модуль ускорения которого наиболее приближен к нормальному (9.8)
         baseAxis = getBaseAxis(initValues);
         startPoint = timeCounts.get(0);
@@ -49,6 +57,9 @@ public class PitDetectror {
         return new PitDTO(startPoint.getLon(), startPoint.getLat(), endPoint.getLon(),endPoint.getLat(), avg);
     }
     public static double[] getGarmonics(){
+        if (timeCounts.isEmpty()) {
+            return new double[DEFAULT_FOURIET_SPECTRE_LENGTH];
+        }
         double[] initValues = new double[]
                 {
                         timeCounts.get(0).getAccelX(),
@@ -56,8 +67,8 @@ public class PitDetectror {
                         timeCounts.get(0).getAccelZ()
                 };
         //выбиреам ось,модуль ускорения которого наиболее приближен к нормальному (9.8)
-        int baseAxis = getBaseAxis(initValues);
-        return fourier.getGarmonics(timeCounts, baseAxis);
+        //int baseAxis = getBaseAxis(initValues);
+        return fourier.getGarmonics(timeCounts, /*baseAxis*/2);
     }
     //определение оси телефона, коллинеарной вектору g
     private static int getBaseAxis(double[] values){
