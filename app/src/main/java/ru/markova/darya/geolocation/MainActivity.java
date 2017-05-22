@@ -1,6 +1,7 @@
 package ru.markova.darya.geolocation;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +13,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
@@ -28,7 +30,9 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
@@ -36,6 +40,7 @@ import ru.markova.darya.geolocation.service.DateTimeService;
 import ru.markova.darya.geolocation.service.LocalStorageService;
 import ru.markova.darya.geolocation.service.AnalyzingPitService;
 import ru.markova.darya.geolocation.service.ShakeEventSensor;
+import ru.markova.darya.geolocation.tools.CoordinateSystemRotationMatrix;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -65,6 +70,15 @@ public class MainActivity extends AppCompatActivity {
 
     private BarChart barChart;
     private ArrayList<BarEntry> barEntries;
+
+    // data for calibrating
+    private static boolean isInCalibratingMode = false;
+    private static List<Double> xCalibratingAccels;
+    private static List<Double> yCalibratingAccels;
+    private static List<Double> zCalibratingAccels;
+    private final CalibrateRunnableHandler calibrateRunnableHandler = new CalibrateRunnableHandler();
+    private CalibrateRunnable calibrateRunnable = new CalibrateRunnable(this);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,18 +118,34 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onShake() {
                         float[] accel = shakeEventListener.getAccellrations();
-                        String info =  String.format("SHAKING: ax = %1$.4f, ay = %2$.4f, az=%3$.4f", accel[0],accel[1],accel[2]);
-                        AccelerationTableEntity entity = new AccelerationTableEntity();
-                        entity.setDeviceImei(deviceIMEI);
-                        entity.setAccelX(accel[0]); entity.setAccelY(accel[1]);entity.setAccelZ(accel[2]);
-                        if (lastLocation !=null) {
-                            entity.setLat(lastLocation.getLatitude());
-                            entity.setLon(lastLocation.getLongitude());
+                        if (isInCalibratingMode) {
+                            // Накапливаем 100 значений ускорений (эквивалентно 1 секунде), чтобы найти их среднее
+                            if (xCalibratingAccels.size() <= 100) {
+                                xCalibratingAccels.add((double) accel[0]);
+                                yCalibratingAccels.add((double) accel[1]);
+                                zCalibratingAccels.add((double) accel[2]);
+                            } else {
+                                CoordinateSystemRotationMatrix.initMatrix(xCalibratingAccels.toArray(new Double[xCalibratingAccels.size()]),
+                                        yCalibratingAccels.toArray(new Double[yCalibratingAccels.size()]),
+                                        zCalibratingAccels.toArray(new Double[zCalibratingAccels.size()]));
+                                isInCalibratingMode = false;
+                            }
                         }
-                        entity.setDataTime(DateTimeService.getCurrentDateAndTime());
-                        //локально сохраняем показание ускорений
-                        localStorageService.insertAcceleration(entity);
-                        System.out.println(info);
+                        else {
+                            //String info =  String.format("SHAKING: ax = %1$.4f, ay = %2$.4f, az=%3$.4f", accel[0],accel[1],accel[2]);
+                            AccelerationTableEntity entity = new AccelerationTableEntity();
+                            accel = CoordinateSystemRotationMatrix.Multiply(accel);
+                            entity.setDeviceImei(deviceIMEI);
+                            entity.setAccelX(accel[0]); entity.setAccelY(accel[1]);entity.setAccelZ(accel[2]);
+                            if (lastLocation !=null) {
+                                entity.setLat(lastLocation.getLatitude());
+                                entity.setLon(lastLocation.getLongitude());
+                            }
+                            entity.setDataTime(DateTimeService.getCurrentDateAndTime());
+                            //локально сохраняем показание ускорений
+                            localStorageService.insertAcceleration(entity);
+                            //System.out.println(info);
+                        }
                     }
                 }
         );
@@ -278,5 +308,35 @@ public class MainActivity extends AppCompatActivity {
         barData.setDrawValues(false);//подписи к столбцам убираем
         barChart.setData(barData);
         barChart.invalidate();
+    }
+
+    public void onClickCalibrate(View view) {
+        txtValue.setText("Calibrating...");
+        initCalibratingAccels();
+        calibrateRunnableHandler.postDelayed(calibrateRunnable, 1000);
+    }
+
+    private static void initCalibratingAccels() {
+        xCalibratingAccels = new ArrayList<>();
+        yCalibratingAccels = new ArrayList<>();
+        zCalibratingAccels = new ArrayList<>();
+    }
+
+    private static class CalibrateRunnableHandler extends Handler {}
+
+    public static class CalibrateRunnable implements Runnable {
+        private final WeakReference<MainActivity> mActivity;
+
+        public CalibrateRunnable(MainActivity activity) {
+            mActivity = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void run() {
+            Activity activity = mActivity.get();
+            if (activity != null) {
+                isInCalibratingMode = true;
+            }
+        }
     }
 }

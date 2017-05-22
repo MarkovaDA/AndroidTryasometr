@@ -40,7 +40,7 @@ public class LocalStorageService {
     public List<AccelerationTableEntity> getSavedAccelerations(Date date){
         Query query = daoSession.queryBuilder(AccelerationTableEntity.class)
                 .where(AccelerationTableEntityDao.Properties.DataTime.le(date))
-                .limit(50)
+                .limit(100)
                 .build();
         return query.list();
     }
