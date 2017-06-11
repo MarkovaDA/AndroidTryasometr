@@ -13,6 +13,7 @@ public class PitDetectror {
 
     private static final int DEFAULT_FOURIET_SPECTRE_LENGTH = 25; // 1 секунда при интервале измерений в 40 мс
     private static final float MIN_ALLOWED_SPEED = 4.17f; // минимально допустимая скорость для расчетов, м/с (соответствует 15 км/ч)
+    private static final double FOURIET_TRESHOLD = 9.0;  // treshold for average fouriet garmonics spectre for detecting 2nd class path parts
 
     //преобразователь Фурье
     private static FourierTransform fouriet;
@@ -37,7 +38,7 @@ public class PitDetectror {
         int i=0;
         int baseAxis = 0;//номер базовой оси
         AccelerationTableEntity startPoint, endPoint;
-        double avg; //средний показатель ыеличины гармоник на отрезке
+
 //        double[] initValues;
         if (timeCounts.isEmpty()) {
             return new PitDTO(0d, 0d, 0d, 0d, 0d);
@@ -55,11 +56,16 @@ public class PitDetectror {
         startPoint = timeCounts.get(0);
         endPoint = timeCounts.get(timeCounts.size()-1);
         // Если средняя скорость ниже порога - возвращаем пустую ДТО
-        if (DistanceCount.distance(startPoint.getLat(), startPoint.getLon(), endPoint.getLat(), endPoint.getLon()) <= MIN_ALLOWED_SPEED) {
-            return new PitDTO(0d, 0d, 0d, 0d, 0d);
+//        if (DistanceCount.distance(startPoint.getLat(), startPoint.getLon(), endPoint.getLat(), endPoint.getLon()) <= MIN_ALLOWED_SPEED) {
+//            return new PitDTO(0d, 0d, 0d, 0d, 0d);
+//        }
+        int value;  // Оценка участка пути
+        if ((value = TresholdAccelFilter.classifyPathPart(timeCounts)) >= 3) {
+            return new PitDTO(startPoint.getLon(), startPoint.getLat(), endPoint.getLon(),endPoint.getLat(), (double)value);
         }
-        avg = fouriet.getAvgOfAmplitudes(timeCounts, baseAxis);
-        return new PitDTO(startPoint.getLon(), startPoint.getLat(), endPoint.getLon(),endPoint.getLat(), avg);
+        double avg = fouriet.getAvgOfAmplitudes(timeCounts, baseAxis); //средний показатель ыеличины гармоник на отрезке
+        value = avg > FOURIET_TRESHOLD ? 2 : 1;
+        return new PitDTO(startPoint.getLon(), startPoint.getLat(), endPoint.getLon(),endPoint.getLat(), (double)value);
     }
     public static double[] getGarmonics(){
         if (timeCounts.isEmpty()) {
