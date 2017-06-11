@@ -12,6 +12,11 @@ public class TresholdAccelFilter {
     private static final double FOURTH_CLASS_DIFF_TRESHOLD = 14.0;  // treshold for difference between accels ang G value for detecting 4th class path parts
     private static final double THIRD_CLASS_DIFF_TRESHOLD = 8.0;  // treshold for difference between accels ang G value for detecting 3th class path parts
 
+    /**
+     * Analyzing data with treshold filter for diff between Z-axis accels and G value
+     * @param accels
+     * @return int rating - 3 or 4 if pit, 0 else
+     */
     public static int classifyPathPart(List<AccelerationTableEntity> accels){
         final int currentAxis = 2;  // Axis which we analyse
         for (AccelerationTableEntity accel : accels) {
