@@ -7,7 +7,7 @@ import java.util.Date;
 import ru.markova.darya.geolocation.entity.AccelerationTableEntity;
 
 //объект для передачи ускорения
-public class AccelerationDTO {
+public class  AccelerationDTO {
 
     private float accelX;
     private float accelY;

@@ -27,7 +27,6 @@ import ru.markova.darya.geolocation.entity.InfoTableEntity;
 public class AnalyzingPitService extends Service{
 
     private  final static  Long CHECK_INTERVAL = 2500L; //интервал отправки ускорений на сервер
-    private  final static int count = 50;
     private Handler checkAndSendHandler = null;
 
     //сервис для отправки запросов на сервер
