@@ -17,7 +17,7 @@ public class RetrofitBuilder {
     private static Gson gson = new GsonBuilder()
             .setLenient()
             .create();
-    private static final String URL = "http://192.168.0.100:8080/tryasometr_data_transfer/";
+    private static final String URL = "http://192.168.0.100:8084/tryasometr_data_transfer/";
 //    private static final String URL = "http://vps1.vistar.su:8080/tryasometr_v2/";
 //    private static final String URL = "http://vps1.vistar.su:8080/TryasometrDataTransfer-1.0-SNAPSHOT/";
 
